@@ -1,13 +1,14 @@
+const mongoose = require("mongoose");
 require("dotenv").config();
 
-const connectDB = () => {
+const uri = process.env.MONGO_URI;
+
+const connectDB = async () => {
     try {
-        const mongoURI = process.env.MONGO_URI;
-        console.log(mongoURI);
-        if (!mongoURI) throw new Error("MONGO_URI is missing in .env");
-        console.log("Connected to MongoDB");
-    } catch (error) {
-        console.error(" MongoDB connection failed:", error.message);
+        await mongoose.connect(uri);
+        console.log("✅ MongoDB connected");
+    } catch (err) {
+        console.error("❌ MongoDB error:", err);
         process.exit(1);
     }
 };
