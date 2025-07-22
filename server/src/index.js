@@ -1,6 +1,9 @@
-const express = require("express");
+require("module-alias/register");
 require("dotenv").config();
-const { connectDB } = require("../config/db");
+
+const express = require("express");
+
+const { connectDB } = require("@config/db.js");
 
 connectDB();
 
