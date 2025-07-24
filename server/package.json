@@ -15,9 +15,12 @@
     "dependencies": {
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
+        "express-session": "^1.18.2",
         "module-alias": "^2.2.3",
         "mongodb": "^6.17.0",
-        "mongoose": "^8.16.4"
+        "mongoose": "^8.16.4",
+        "passport": "^0.7.0",
+        "passport-google-oauth2": "^0.2.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.31.0",
@@ -33,6 +36,7 @@
         "@models": "models",
         "@routes": "routes",
         "@utils": "utils",
-        "@src": "src"
+        "@src": "src",
+        "@middleware": "middleware"
     }
 }
