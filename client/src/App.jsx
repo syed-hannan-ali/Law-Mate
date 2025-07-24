@@ -1,15 +1,18 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "@components/Login";
+import HeroSection from "@components/HeroSection";
+import OAuthSuccess from "@components/OAuthSuccess";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="min-h-screen bg-blue-500 text-white flex items-center justify-center">
-      <h1 className="text-3xl font-bold">Full Blue Background</h1>
-    </div> 
-  )
+    <Router>
+      <Routes>
+        <Route path="/dashboard" element={<HeroSection />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/oauth-success" element={<OAuthSuccess/>}/>
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;

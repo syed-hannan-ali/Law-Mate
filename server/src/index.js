@@ -1,11 +1,12 @@
 require("module-alias/register");
 require("dotenv").config();
-require("@middleware/auth.js");
+require("@config/auth.config.js");
 
 const express = require("express");
+const cors = require("cors");
 
-const { connectDB } = require("@config/db.js");
-const User = require("@models/user.js");
+const { connectDB } = require("@config/db.config.js");
+const User = require("@models/user.model.js");
 
 const session = require("express-session");
 const passport = require("passport");
@@ -13,6 +14,12 @@ const passport = require("passport");
 const app = express();
 
 app.use(express.json());
+app.use(
+    cors({
+        origin: "http://localhost:5173", // Change to your frontend URL
+        credentials: true, // Allow cookies to be sent
+    }),
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(
     session({
@@ -23,35 +30,22 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+app.use("/api", require("@routes/routes.js"));
+
+connectDB();
+
+// Test route
+app.get("/", (req, res) => res.send("Welcome to Law Mate Backend"));
 
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
-    console.log(`🌐 Server listening on http://localhost:${PORT}`);
+    console.log(`Server listening on http://localhost:${PORT}`);
 });
-
-connectDB();
 
 function isAuthenticated(req, res, next) {
     req.user ? next() : res.status(401).send("Unauthorized");
 }
-
-app.get("/", (req, res) => {
-    res.send('<a href="/auth/google">Login with Google</a>');
-});
-
-app.get(
-    "/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] }),
-);
-
-app.get(
-    "/auth/google/callback",
-    passport.authenticate("google", {
-        failureRedirect: "/failure",
-        successRedirect: "/protected",
-    }),
-);
 
 app.get("/failure", (req, res) => {
     res.send("Authentication failed. Please try again.");
