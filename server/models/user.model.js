@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
     {
-        name: {
+        username: {
             type: String,
             required: true,
             trim: true,
@@ -16,15 +16,14 @@ const UserSchema = new mongoose.Schema(
             trim: true,
         },
 
-        passwordHash: {
+        hashedPassword: {
             type: String,
-            required: true,
         },
 
         role: {
             type: String,
             enum: ["lawyer", "client", "admin", "paralegal"],
-            required: true,
+            default: "client", 
         },
 
         contactInfo: {
