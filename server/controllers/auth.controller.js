@@ -1,6 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("@models/user.model");
+require("dotenv").config();
+
+const signingKey = process.env.JWT_SIGNING_KEY;
 
 exports.signupUser = async (req, res) => {
     try {
@@ -47,7 +50,7 @@ exports.loginUser = async (req, res) => {
 
         const token = jwt.sign(
             { userId: user._id, userRole: user.role },
-            "your-secret-key",
+            signingKey,
             {
                 expiresIn: "1h",
             },
@@ -87,7 +90,7 @@ exports.googleCallback = async (req, res) => {
 
     const token = jwt.sign(
         { userId: user._id, userRole: user.role },
-        "your-secret-key",
+        signingKey,
         {
             expiresIn: "1h",
         },

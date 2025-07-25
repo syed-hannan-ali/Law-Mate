@@ -6,7 +6,6 @@ const express = require("express");
 const cors = require("cors");
 
 const { connectDB } = require("@config/db.config.js");
-const User = require("@models/user.model.js");
 
 const session = require("express-session");
 const passport = require("passport");
@@ -14,7 +13,12 @@ const passport = require("passport");
 const app = express();
 
 app.use(express.json());
- 
+app.use(
+    cors({
+        origin: "http://localhost:5173", // Change to your frontend URL
+        credentials: true, // Allow cookies to be sent
+    }),
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(
     session({

@@ -1,4 +1,7 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
+
+const signingKey = process.env.JWT_SIGNING_KEY;
 
 function verifyToken(req, res, next) {
     const token = req.header("Authorization");
@@ -10,7 +13,7 @@ function verifyToken(req, res, next) {
         const cleanToken = tokenWithoutBearer ? token.slice(7) : token;
         console.log("Clean token: " + cleanToken);
 
-        const decoded = jwt.verify(cleanToken, "your-secret-key");
+        const decoded = jwt.verify(cleanToken, signingKey);
         console.log("Decoded token: ", decoded);
 
         console.log(req.userId);
