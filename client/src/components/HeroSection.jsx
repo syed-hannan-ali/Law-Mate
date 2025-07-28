@@ -179,8 +179,11 @@ export default function LegalLandingPage() {
                         >
                             Explore Features <span aria-hidden="true">→</span>
                         </a>
+                        
                     </div>
+                    
                 </div>
+                
 
                 {/* background gradient blur shapes */}
                 <div
@@ -195,6 +198,7 @@ export default function LegalLandingPage() {
                         }}
                     />
                 </div>
+                
             </main>
         </div>
     );

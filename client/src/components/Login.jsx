@@ -16,7 +16,7 @@ export default function Login() {
             console.log(res.data);
             if (res.status === 200) {
                 localStorage.setItem("user", JSON.stringify(res.data.user));
-                navigate("/dashboard"); // Redirect to HeroSection
+                navigate("/"); // Redirect to HeroSection
             }
         } catch (err) {
             if (err.response && err.response.status === 401) {

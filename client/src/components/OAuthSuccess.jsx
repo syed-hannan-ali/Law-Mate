@@ -12,7 +12,7 @@ export default function OAuthSuccess() {
         if (user && token) {
             localStorage.setItem("user", user);
             localStorage.setItem("token", token);
-            navigate("/dashboard");
+            navigate("/");
         }
     }, [searchParams, navigate]);
 
