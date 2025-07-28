@@ -1,6 +1,6 @@
 const Document = require("@models/document.model");
 
-// ✅ Create
+
 exports.createDocument = async (req, res) => {
     try {
         console.log("Creating document with data:", req.body);
@@ -15,7 +15,7 @@ exports.createDocument = async (req, res) => {
     }
 };
 
-// ✅ Read all (non-deleted)
+
 exports.getAllDocuments = async (req, res) => {
     try {
         const documents = await Document.find({ isDeleted: false })
