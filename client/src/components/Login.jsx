@@ -19,6 +19,11 @@ export default function Login() {
                 navigate("/dashboard"); // Redirect to HeroSection
             }
         } catch (err) {
+            if (err.response && err.response.status === 401) {
+                alert(err.response.data.error);
+            } else {
+                alert("An unexpected error occurred.");
+            }
             console.error(err);
         } finally {
             setEmail("");

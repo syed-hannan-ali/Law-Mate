@@ -50,12 +50,6 @@ const CaseSchema = new mongoose.Schema(
             },
         ],
 
-        notes: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Note",
-            },
-        ],
 
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
@@ -77,7 +71,5 @@ const CaseSchema = new mongoose.Schema(
     },
 );
 
-// Index for searching/filtering
-CaseSchema.index({ title: "text", description: "text", tags: 1 });
 
 module.exports = mongoose.model("Case", CaseSchema);

@@ -11,6 +11,7 @@ const AppointmentSchema = new mongoose.Schema(
         description: {
             type: String,
             trim: true,
+            default: "",
         },
 
         case: {
@@ -28,19 +29,22 @@ const AppointmentSchema = new mongoose.Schema(
         date: {
             type: Date,
             required: true,
+            empty: true,
         },
 
         durationMinutes: {
             type: Number,
-            default: 30,
+            default: 0,
         },
 
         location: {
             type: String, // e.g., physical address or court room
+            empty: true,
         },
 
         meetingLink: {
             type: String, // For virtual appointments (Zoom/Google Meet/etc.)
+            empty: true,
         },
 
         status: {

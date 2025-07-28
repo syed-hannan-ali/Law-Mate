@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("@models/user.model");
+const User = require("@models/user.model.js");
 require("dotenv").config();
 
 const signingKey = process.env.JWT_SIGNING_KEY;
@@ -56,7 +56,7 @@ exports.loginUser = async (req, res) => {
             },
         );
 
-        console.log("Token generated: ", token);
+        // console.log("Token generated: ", token);
 
         res.status(200).json({
             message: "Login successful",
@@ -96,7 +96,7 @@ exports.googleCallback = async (req, res) => {
         },
     );
 
-    console.log("Token generated: ", token);
+    // console.log("Token generated: ", token);
 
     const userPayload = {
         id: user._id,

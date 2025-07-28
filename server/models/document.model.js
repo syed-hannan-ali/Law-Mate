@@ -77,7 +77,4 @@ const DocumentSchema = new mongoose.Schema(
     },
 );
 
-// Index for search
-DocumentSchema.index({ title: "text", tags: 1, aiSummary: "text" });
-
 module.exports = mongoose.model("Document", DocumentSchema);
