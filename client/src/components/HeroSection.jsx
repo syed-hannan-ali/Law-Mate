@@ -1,20 +1,8 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogPanel } from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
-
-const navigation = [
-    { name: "Features", href: "#features" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "About", href: "#about" },
-    { name: "Contact", href: "#contact" },
-];
+import Header from "@components/Header";
 
 export default function LegalLandingPage() {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
     const [user, setUser] = useState(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -23,138 +11,9 @@ export default function LegalLandingPage() {
         }
     }, []);
 
-    const handleLoginClick = () => {
-        navigate("/login", { state: { from: "/" } }); // For redirecting back
-    };
-
     return (
         <div className="bg-white">
-            <header className="absolute inset-x-0 top-0 z-50">
-                <nav
-                    className="flex items-center justify-between p-6 lg:px-8"
-                    aria-label="Global"
-                >
-                    <div className="flex lg:flex-1">
-                        <a
-                            href="/"
-                            className="-m-1.5 p-1.5 flex items-center gap-2"
-                        >
-                            <img
-                                alt="Logo"
-                                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                className="h-8 w-auto"
-                            />
-                            <span className="font-bold text-lg">Law Mate</span>
-                        </a>
-                    </div>
-                    <div className="flex lg:hidden">
-                        <button
-                            onClick={() => setMobileMenuOpen(true)}
-                            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
-                        >
-                            <span className="sr-only">Open menu</span>
-                            <Bars3Icon className="size-6" aria-hidden="true" />
-                        </button>
-                    </div>
-                    <div className="hidden lg:flex lg:gap-x-12">
-                        {navigation.map((item) => (
-                            <a
-                                key={item.name}
-                                href={item.href}
-                                className="text-sm font-semibold text-gray-900 hover:text-indigo-600 px-2"
-                            >
-                                {item.name}
-                            </a>
-                        ))}
-                    </div>
-                    <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                        {user ? (
-                            <div className="flex items-center gap-4">
-                                <span className="text-sm font-semibold text-gray-900">
-                                    Hey, {user.name}
-                                </span>
-                                <button
-                                    onClick={() => {
-                                        localStorage.removeItem("user");
-                                        setUser(null);
-                                    }}
-                                    className="text-sm font-semibold text-red-600 px-3 py-2 rounded-md transition-colors duration-300 ease-in-out hover:bg-red-600 hover:text-white"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={handleLoginClick}
-                                className="text-sm font-semibold leading-6 text-gray-900 hover:text-indigo-600 px-2"
-                            >
-                                Log in
-                            </button>
-                        )}
-                    </div>
-                </nav>
-                <Dialog
-                    as="div"
-                    className="lg:hidden"
-                    open={mobileMenuOpen}
-                    onClose={setMobileMenuOpen}
-                >
-                    <div className="fixed inset-0 z-50" />
-                    <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full bg-white p-6 sm:max-w-sm">
-                        <div className="flex items-center justify-between">
-                            <a
-                                href="/"
-                                className="-m-1.5 p-1.5 flex items-center gap-2"
-                            >
-                                <img
-                                    alt=""
-                                    src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                    className="h-8 w-auto"
-                                />
-                                <span className="font-bold">LegalEase</span>
-                            </a>
-                            <button
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="-m-2.5 rounded-md p-2.5 text-gray-700"
-                            >
-                                <XMarkIcon
-                                    className="size-6"
-                                    aria-hidden="true"
-                                />
-                            </button>
-                        </div>
-                        <div className="mt-6 flow-root">
-                            <div className="-my-6 divide-y divide-gray-500/10">
-                                <div className="space-y-2 py-6">
-                                    {navigation.map((item) => (
-                                        <a
-                                            key={item.name}
-                                            href={item.href}
-                                            className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >
-                                            {item.name}
-                                        </a>
-                                    ))}
-                                </div>
-                                <div className="py-6">
-                                    {user ? (
-                                        <span className="block px-3 text-base font-semibold text-gray-900">
-                                            Hey, {user.name}
-                                        </span>
-                                    ) : (
-                                        <button
-                                            onClick={handleLoginClick}
-                                            className="block w-full text-left px-3 py-2.5 text-base font-semibold text-gray-900 hover:bg-gray-50"
-                                        >
-                                            Log in
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </DialogPanel>
-                </Dialog>
-            </header>
+            <Header user={user} setUser={setUser} />
 
             <main className="relative isolate px-6 pt-14 lg:px-8">
                 <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56 text-center">
@@ -179,11 +38,8 @@ export default function LegalLandingPage() {
                         >
                             Explore Features <span aria-hidden="true">→</span>
                         </a>
-                        
                     </div>
-                    
                 </div>
-                
 
                 {/* background gradient blur shapes */}
                 <div
@@ -198,7 +54,6 @@ export default function LegalLandingPage() {
                         }}
                     />
                 </div>
-                
             </main>
         </div>
     );

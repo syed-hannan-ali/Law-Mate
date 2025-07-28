@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "@config/axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -138,12 +138,12 @@ export default function Login() {
 
                     <p className="mt-10 text-center text-sm/6 text-gray-500">
                         Not a member?{" "}
-                        <a
-                            href="#"
+                        <Link
+                            to="/signup"
                             className="font-semibold text-indigo-600 hover:text-indigo-500"
                         >
                             register
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>
