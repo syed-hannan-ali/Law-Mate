@@ -1,12 +1,8 @@
 const Case = require("@models/case.model");
-const Document = require("@models/document.model.js");
-
+const logAudit = require("@middleware/auditLog.middleware.js");
+const User = require("@models/user.model.js");
 
 exports.createCase = async (req, res) => {
-    console.log("Creating case with data:", req.body);
-
-    console.log("User ID from request:", req.userId);
-
     try {
         const userId = req.userId;
         const clientId = req.body.client;
@@ -24,6 +20,20 @@ exports.createCase = async (req, res) => {
         console.log("New case object:", newCase);
 
         await newCase.save();
+
+        await logAudit({
+            user: await User.findById(userId),
+            action: "CREATE_CASE",
+            target: "Case",
+            description: `Case ${newCase._id} was created`,
+            metadata: {
+                caseId: newCase._id,
+                client: clientId,
+                tittle,
+                description,
+            },
+        });
+
         console.log("Case created successfully");
 
         // const saved = await newCase.save();
@@ -49,7 +59,6 @@ exports.getAllCases = async (req, res) => {
 };
 
 exports.getCaseById = async (req, res) => {
-
     console.log("Fetching case with ID:", req.params.id);
     try {
         const found = await Case.findById(req.params.id);
@@ -63,12 +72,31 @@ exports.getCaseById = async (req, res) => {
 
 exports.updateCase = async (req, res) => {
     try {
+        const caseId = req.params.id;
+        const updates = { ...req.body, updatedBy: req.user._id };
+
         const updated = await Case.findOneAndUpdate(
-            { _id: req.params.id, isDeleted: false },
-            { ...req.body, updatedBy: req.user._id },
+            { _id: caseId, isDeleted: false },
+            updates,
             { new: true },
         );
+
         if (!updated) return res.status(404).json({ error: "Case not found" });
+
+        const user = await User.findById(req.user._id);
+
+        // Log audit
+        await logAudit({
+            user: user,
+            action: "UPDATE_CASE",
+            target: "Case",
+            description: `Case ${updated._id} was updated`,
+            metadata: {
+                updatedFields: req.body,
+                caseId: updated._id,
+            },
+        });
+
         res.json(updated);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -83,6 +111,19 @@ exports.deleteCase = async (req, res) => {
             { new: true },
         );
         if (!deleted) return res.status(404).json({ error: "Case not found" });
+        const user = await User.findById(req.user._id);
+
+        // Log the audit
+        await logAudit({
+            user: user,
+            action: "DELETE_CASE",
+            target: "Case",
+            description: `Case ${deleted._id} was soft-deleted`,
+            metadata: {
+                caseId: deleted._id,
+                deletedAt: new Date(),
+            },
+        });
         res.json({ message: "Case soft-deleted successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });

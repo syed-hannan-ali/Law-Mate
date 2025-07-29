@@ -15,6 +15,18 @@ exports.createAppointment = async (req, res) => {
             createdBy: req.userId,
         });
         const saved = await appointment.save();
+        const appointmentId = saved._id;
+
+        const user = await User.findById(req.userId);
+
+        await logAudit({
+            user: user,
+            action: "CREATE_APPOINTMENT",
+            target: "Appointment",
+            description: `Case ${appointmentId} was created`,
+            metadata: { updatedFields: req.body },
+        });
+
         res.status(201).json(saved);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -63,8 +75,8 @@ exports.updateAppointment = async (req, res) => {
 
         await logAudit({
             user: user,
-            action: "UPDATE_CASE",
-            target: "Case",
+            action: "UPDATE_APPOINTMENT",
+            target: "Appointment",
             description: `Case ${req.params.id} was updated`,
             metadata: { updatedFields: req.body },
         });
@@ -85,6 +97,18 @@ exports.deleteAppointment = async (req, res) => {
             { new: true },
         );
         if (!deleted) return res.status(404).json({ error: "Not found" });
+
+        const user = await User.findById(req.userId);
+
+        // Log audit
+        await logAudit({
+            user: user,
+            action: "DELETE_APPOINTMENT",
+            target: "Appointment",
+            description: `Appointment ${deleted._id} was marked as deleted`,
+            metadata: { appointmentId: deleted._id },
+        });
+
         res.json({ message: "Appointment deleted successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });

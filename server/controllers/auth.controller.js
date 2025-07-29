@@ -1,25 +1,36 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("@models/user.model.js");
+const logAudit = require("@middleware/auditLog.middleware.js");
 require("dotenv").config();
 
 const signingKey = process.env.JWT_SIGNING_KEY;
 
 exports.signupUser = async (req, res) => {
     try {
-        console.log("Signup request received with body: ", req.body);
         const { username, email, password } = req.body;
         let existingUser = await User.findOne({ email });
-        console.log("Existing user found: ", existingUser);
+
         if (existingUser) {
             return res.status(400).json({ error: "User already exists" });
         }
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("Hash is " + hashedPassword);
+
         const newUser = new User({ username, email, hashedPassword });
-        console.log(newUser);
+
         await newUser.save();
+
+        await logAudit({
+            user: newUser,
+            action: "USER_SIGNUP",
+            target: "User",
+            description: `User ${username} signed up.`,
+            metadata: { email },
+        });
+
         console.log("User saved");
+
         res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
         res.status(500).json({ message: "Registration failed", error: error });
