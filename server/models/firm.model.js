@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const firmSchema = new Schema({
@@ -20,13 +20,13 @@ const firmSchema = new Schema({
     lawyers: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'User', // or 'Lawyer' if you have a separate model
+            ref: "User", // or 'Lawyer' if you have a separate model
         },
     ],
     cases: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'Case',
+            ref: "Case",
         },
     ],
     createdAt: {
@@ -39,4 +39,4 @@ const firmSchema = new Schema({
     },
 });
 
-module.exports = mongoose.model('Firm', firmSchema);
+module.exports = mongoose.model("Firm", firmSchema);

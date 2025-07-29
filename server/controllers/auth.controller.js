@@ -113,6 +113,7 @@ exports.googleCallback = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.username,
+
     };
 
     const redirectUrl = `http://localhost:5173/oauth-success?user=${encodeURIComponent(

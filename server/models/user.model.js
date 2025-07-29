@@ -20,10 +20,15 @@ const UserSchema = new mongoose.Schema(
             type: String,
         },
 
+        firm: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Firm",
+            default: null,
+        },
         role: {
             type: String,
             enum: ["lawyer", "client", "admin", "paralegal"],
-            default: "client", 
+            default: "client",
         },
 
         contactInfo: {

@@ -1,6 +1,8 @@
-"use client";
+import { useState, useEffect } from "react";
+import { useUsers } from "@hooks/useUser";
+import EditUserModal from "@components/EditUserModel";
+import axios from "@config/axios";
 
-import { useState } from "react";
 import {
     Plus,
     Search,
@@ -39,60 +41,53 @@ import {
 } from "@components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 
-const users = [
-    {
-        id: 1,
-        name: "John Smith",
-        email: "john.smith@smithlaw.com",
-        role: "Lawyer",
-        firm: "Smith & Associates",
-        status: "Active",
-        lastLogin: "2024-01-15",
-        avatar: "/placeholder.svg?height=32&width=32",
-    },
-    {
-        id: 2,
-        name: "Sarah Johnson",
-        email: "sarah@johnsonlegal.com",
-        role: "Admin",
-        firm: "Johnson Legal",
-        status: "Active",
-        lastLogin: "2024-01-14",
-        avatar: "/placeholder.svg?height=32&width=32",
-    },
-    {
-        id: 3,
-        name: "Mike Wilson",
-        email: "mike.wilson@wilsonlaw.com",
-        role: "Paralegal",
-        firm: "Wilson Law Group",
-        status: "Inactive",
-        lastLogin: "2024-01-10",
-        avatar: "/placeholder.svg?height=32&width=32",
-    },
-    {
-        id: 4,
-        name: "Emily Davis",
-        email: "emily@client.com",
-        role: "Client",
-        firm: "-",
-        status: "Active",
-        lastLogin: "2024-01-15",
-        avatar: "/placeholder.svg?height=32&width=32",
-    },
-];
-
 export function UserManagement() {
+    const [isEditModalOpen, setEditModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const { users } = useUsers();
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [firms, setFirms] = useState([]);
+
+    useEffect(() => {
+        const fetchFirms = async () => {
+            try {
+                const res = await axios.get("/firms");
+                console.log(res.data);
+                setFirms(res.data);
+            } catch (err) {
+                console.error("Failed to fetch firms:", err);
+            }
+        };
+
+        fetchFirms();
+    }, []);
+
+    const handleEditClick = (user) => {
+        setSelectedUser(user);
+        setEditModalOpen(true);
+    };
+
+    const handleSaveUser = async (updatedData) => {
+        try {
+            const res = await axios.put(
+                `/users/${selectedUser._id}`,
+                updatedData,
+            );
+            console.log("User updated:", res.data);
+            setEditModalOpen(false);
+        } catch (err) {
+            console.error("Error updating user", err);
+        }
+    };
 
     const filteredUsers = users.filter((user) => {
         const matchesSearch =
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesRole =
-            roleFilter === "all" || user.role.toLowerCase() === roleFilter;
+            roleFilter === "all" || user.role?.toLowerCase() === roleFilter;
         const matchesStatus =
             statusFilter === "all" ||
             user.status.toLowerCase() === statusFilter;
@@ -111,10 +106,6 @@ export function UserManagement() {
                         Manage all users across the LawMate platform
                     </p>
                 </div>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add User
-                </Button>
             </div>
 
             <Card>
@@ -147,21 +138,6 @@ export function UserManagement() {
                                 <SelectItem value="client">Client</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select
-                            value={statusFilter}
-                            onValueChange={setStatusFilter}
-                        >
-                            <SelectTrigger className="w-[140px]">
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive">
-                                    Inactive
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -171,8 +147,6 @@ export function UserManagement() {
                                 <TableHead>User</TableHead>
                                 <TableHead>Role</TableHead>
                                 <TableHead>Firm</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Last Login</TableHead>
                                 <TableHead className="text-right">
                                     Actions
                                 </TableHead>
@@ -192,7 +166,7 @@ export function UserManagement() {
                                                     alt={user.name}
                                                 />
                                                 <AvatarFallback>
-                                                    {user.name
+                                                    {user.username
                                                         .split(" ")
                                                         .map((n) => n[0])
                                                         .join("")}
@@ -213,19 +187,7 @@ export function UserManagement() {
                                             {user.role}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell>{user.firm}</TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                user.status === "Active"
-                                                    ? "default"
-                                                    : "secondary"
-                                            }
-                                        >
-                                            {user.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{user.lastLogin}</TableCell>
+                                    <TableCell>{user.firm?.name}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -243,23 +205,13 @@ export function UserManagement() {
                                                 <DropdownMenuLabel>
                                                     Actions
                                                 </DropdownMenuLabel>
-                                                <DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        handleEditClick(user)
+                                                    }
+                                                >
                                                     <Edit className="mr-2 h-4 w-4" />
                                                     Edit User
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    {user.status ===
-                                                    "Active" ? (
-                                                        <>
-                                                            <UserX className="mr-2 h-4 w-4" />
-                                                            Deactivate
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <UserCheck className="mr-2 h-4 w-4" />
-                                                            Activate
-                                                        </>
-                                                    )}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem className="text-red-600">
@@ -275,6 +227,13 @@ export function UserManagement() {
                     </Table>
                 </CardContent>
             </Card>
+            <EditUserModal
+                open={isEditModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                user={selectedUser}
+                onSave={handleSaveUser}
+                firms={firms}
+            />
         </div>
     );
 }

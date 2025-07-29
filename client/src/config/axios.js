@@ -9,9 +9,26 @@ const axiosInstance = axios.create({
   },
 })
 
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const persistedState = localStorage.getItem("auth-storage");
+        if (persistedState) {
+            const { token } = JSON.parse(persistedState).state || {};
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+                console.log("✅ Axios Token Attached:", token);
+            }
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 // Optional: interceptors
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => console.log('Axios Response:', response) || response,
   (error) => {
     // Handle errors globally
     console.error('Axios Error:', error.response?.data || error.message)

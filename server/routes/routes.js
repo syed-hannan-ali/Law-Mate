@@ -4,7 +4,9 @@ const protectedRoutes = require("./protected.route.js");
 const appointmentRoutes = require("./appointment.route.js");
 const caseRoutes = require("./case.route.js");
 const documentRoutes = require("./document.route");
-const taskRoutes = require("./task.route");
+// const taskRoutes = require("./task.route");
+const firmRoutes = require("./firm.route.js");
+const userRoutes = require("./user.route.js");
 
 const router = express.Router();
 
@@ -13,6 +15,8 @@ router.use("/protected", protectedRoutes);
 router.use("/appointments", appointmentRoutes);
 router.use("/cases", caseRoutes);
 router.use("/documents", documentRoutes);
+router.use("/firms",firmRoutes);
+router.use("/users", userRoutes);
 // router.use("/tasks", taskRoutes);
 
 module.exports = router;
