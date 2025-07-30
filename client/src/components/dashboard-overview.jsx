@@ -12,14 +12,6 @@ import { Badge } from "@components/ui/badge";
 
 const metrics = [
     {
-        title: "Total Law Firms",
-        value: "247",
-        change: "+12%",
-        changeType: "positive",
-        icon: Building2,
-        description: "Active law firms",
-    },
-    {
         title: "Total Lawyers",
         value: "1,834",
         change: "+8%",

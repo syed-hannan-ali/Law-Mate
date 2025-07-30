@@ -33,12 +33,13 @@ export default function EditUserModal({
     });
 
     useEffect(() => {
+        console.log(user);
         if (user) {
             setFormData({
                 username: user.username || "",
                 email: user.email || "",
                 role: user.role || "",
-                firm: user.firm?._id || null,
+                firm: user.firm?._id || "none",
             });
         }
     }, [user]);
@@ -49,7 +50,9 @@ export default function EditUserModal({
     };
 
     const handleSubmit = (e) => {
+        console.log(formData);
         e.preventDefault();
+        if (formData.firm == "none") formData.firm = null;
         onSave(formData);
     };
 
@@ -96,13 +99,17 @@ export default function EditUserModal({
                     <Select
                         value={formData.firm}
                         onValueChange={(val) =>
-                            setFormData((prev) => ({ ...prev, firm: val }))
+                            setFormData((prev) => ({
+                                ...prev,
+                                firm: val,
+                            }))
                         }
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Select Law Firm" />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
                             {firms.map((firm) => (
                                 <SelectItem key={firm._id} value={firm._id}>
                                     {firm.name}

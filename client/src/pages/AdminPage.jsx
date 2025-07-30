@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { AdminLayout } from "@components/admin-layout";
+import { Routes, Route } from "react-router-dom";
 import { DashboardOverview } from "@components/dashboard-overview";
 import { UserManagement } from "@components/user-management";
 import { FirmManagement } from "@components/firm-management";
@@ -10,43 +9,28 @@ import { DocumentManagement } from "@components/document-management";
 import { InvoiceManagement } from "@components/invoice-management";
 import { PaymentManagement } from "@components/payment-management";
 import { TaskManagement } from "@components/task-management";
+import { AdminLayout } from "@components/admin-layout";
 
 export default function AdminDashboard() {
-    const [activeSection, setActiveSection] = useState("dashboard");
-
-    const renderContent = () => {
-        switch (activeSection) {
-            case "dashboard":
-                return <DashboardOverview />;
-            case "users":
-                return <UserManagement />;
-            case "firms":
-                return <FirmManagement />;
-            case "cases":
-                return <CaseManagement />;
-            case "appointments":
-                return <AppointmentManagement />;
-            case "audit":
-                return <AuditLogs />;
-            case "documents":
-                return <DocumentManagement />;
-            case "invoices":
-                return <InvoiceManagement />;
-            case "payments":
-                return <PaymentManagement />;
-            case "tasks":
-                return <TaskManagement />;
-            default:
-                return <DashboardOverview />;
-        }
-    };
-
     return (
-        <AdminLayout
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-        >
-            {renderContent()}
-        </AdminLayout>
+        <Routes>
+            <Route path="/" element={<AdminLayout />}>
+                <Route index element={<DashboardOverview />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="firms" element={<FirmManagement />} />
+                <Route path="cases" element={<CaseManagement />} />
+                <Route
+                    path="appointments"
+                    element={<AppointmentManagement />}
+                />
+                <Route path="audit" element={<AuditLogs />} />
+                <Route path="documents" element={<DocumentManagement />} />
+                <Route path="invoices" element={<InvoiceManagement />} />
+                <Route path="payments" element={<PaymentManagement />} />
+                <Route path="tasks" element={<TaskManagement />} />
+                {/* Optional fallback */}
+                <Route path="*" element={<DashboardOverview />} />
+            </Route>
+        </Routes>
     );
 }

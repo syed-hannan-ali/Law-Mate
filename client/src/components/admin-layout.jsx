@@ -15,6 +15,7 @@ import {
     CreditCard,
     CheckSquare,
 } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
@@ -42,6 +43,7 @@ import {
 } from "@components/ui/sidebar";
 import { Badge } from "@components/ui/badge";
 import { useAuth } from "@hooks/useAuth";
+import { Outlet } from "react-router-dom";
 
 const navigationItems = [
     {
@@ -72,7 +74,10 @@ const navigationItems = [
     },
 ];
 
-export function AdminLayout({ children, activeSection, setActiveSection }) {
+export function AdminLayout() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const { user, handleLogout } = useAuth();
     const getUserInitials = (name) => {
         if (!name) return "U";
@@ -127,10 +132,13 @@ export function AdminLayout({ children, activeSection, setActiveSection }) {
                                         <SidebarMenuItem key={item.key}>
                                             <SidebarMenuButton
                                                 isActive={
-                                                    activeSection === item.key
+                                                    location.pathname ===
+                                                    `/admin/${item.key === "dashboard" ? "" : item.key}`
                                                 }
                                                 onClick={() =>
-                                                    setActiveSection(item.key)
+                                                    navigate(
+                                                        `/admin/${item.key === "dashboard" ? "" : item.key}`,
+                                                    )
                                                 }
                                             >
                                                 <item.icon className="h-4 w-4" />
@@ -225,7 +233,9 @@ export function AdminLayout({ children, activeSection, setActiveSection }) {
                         </div>
                     </div>
                 </header>
-                <main className="flex-1 space-y-4 p-6">{children}</main>
+                <main className="flex-1 space-y-4 p-6">
+                    <Outlet />
+                </main>
             </SidebarInset>
         </SidebarProvider>
     );

@@ -19,6 +19,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@components/ui/sheet";
+import { useAuth } from "@hooks/useAuth";
 
 const navigation = [
     { name: "Features", href: "#features" },
@@ -27,17 +28,19 @@ const navigation = [
     { name: "Contact", href: "#contact" },
 ];
 
-export default function Header({ user, setUser }) {
+export default function Header() {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { user, handleLogout } = useAuth();
 
     const handleLoginClick = () => {
         navigate("/login", { state: { from: "/" } });
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        setUser(null);
+    const handleLogoutClick = () => {
+        if (window.confirm("Are you sure you want to log out?")) {
+            handleLogout();
+        }
     };
 
     return (
@@ -118,7 +121,7 @@ export default function Header({ user, setUser }) {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                    onClick={handleLogout}
+                                    onClick={handleLogoutClick}
                                     className="text-red-600"
                                 >
                                     <LogOut className="mr-2 h-4 w-4" />

@@ -76,6 +76,7 @@ exports.loginUser = async (req, res) => {
                 id: user._id,
                 email: user.email,
                 name: user.username,
+                role: user.role,
             },
         });
     } catch (error) {
@@ -113,7 +114,7 @@ exports.googleCallback = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.username,
-
+        role: user.role,
     };
 
     const redirectUrl = `http://localhost:5173/oauth-success?user=${encodeURIComponent(
