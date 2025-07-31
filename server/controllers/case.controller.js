@@ -70,6 +70,8 @@ exports.getCaseById = async (req, res) => {
         const found = await Case.findById(req.params.id);
         if (!found || found.isDeleted)
             return res.status(404).json({ error: "Case not found" });
+
+        found.populate("client assignedStaff createdBy updatedBy");
         res.json(found);
     } catch (err) {
         res.status(500).json({ error: err.message });

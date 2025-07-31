@@ -6,6 +6,29 @@ require("dotenv").config();
 
 const signingKey = process.env.JWT_SIGNING_KEY;
 
+exports.updateToken = (req, res) => {
+    // console.log("🔍 From req.cookies:", req.cookies);
+
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) return res.sendStatus(401);
+
+    jwt.verify(refreshToken, signingKey, (err, user) => {
+        console.log(err, user);
+        if (err) return res.sendStatus(403);
+
+        const newAccessToken = jwt.sign(
+            { id: user.id, role: user.role },
+            signingKey,
+            { expiresIn: "1h" },
+        );
+
+        console.log("✅ New access token generated:", newAccessToken);
+
+        res.json({ accessToken: newAccessToken });
+    });
+};
+
 exports.signupUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -67,18 +90,31 @@ exports.loginUser = async (req, res) => {
             },
         );
 
+        const refreshToken = jwt.sign(
+            { userId: user._id, userRole: user.role },
+            signingKey,
+            { expiresIn: "7d" }, // ⏳ longer expiry
+        );
+
         // console.log("Token generated: ", token);
 
-        res.status(200).json({
-            message: "Login successful",
-            token,
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.username,
-                role: user.role,
-            },
-        });
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: false, // true in production (HTTPS)
+            sameSite: "Lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        })
+            .status(200)
+            .json({
+                message: "Login successful",
+                token,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.username,
+                    role: user.role,
+                },
+            });
     } catch (error) {
         res.status(500).json({ message: "Login failed", error: error });
     }
@@ -107,6 +143,21 @@ exports.googleCallback = async (req, res) => {
             expiresIn: "1h",
         },
     );
+
+    const refreshToken = jwt.sign(
+        { userId: user._id, userRole: user.role },
+        signingKey,
+        { expiresIn: "7d" }, // ⏳ longer expiry
+    );
+
+    // console.log("Token generated: ", token);
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false, // true in production (HTTPS)
+        sameSite: "Lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     // console.log("Token generated: ", token);
 

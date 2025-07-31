@@ -12,7 +12,10 @@ const passport = require("passport");
 const rateLimit = require("@middleware/rateLimit.middleware.js");
 
 const app = express();
+const cookieParser = require("cookie-parser");
 
+
+app.use(cookieParser());
 app.use(express.json());
 app.use(
     cors({

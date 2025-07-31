@@ -48,6 +48,7 @@ import {
 
 import { getAllCases, deleteCase, getUsers } from "@services/case-service";
 import CaseForm from "@components/Case-Form";
+import CaseViewModal from "@components/case-view-model";
 
 const statusColors = {
     open: "secondary",
@@ -59,6 +60,8 @@ export function CaseManagement() {
     const [cases, setCases] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingCase, setEditingCase] = useState(null);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedCase, setSelectedCase] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -226,7 +229,7 @@ export function CaseManagement() {
                             <SelectContent>
                                 <SelectItem value="all">All Status</SelectItem>
                                 <SelectItem value="open">Open</SelectItem>
-                                <SelectItem value="inprogress">
+                                <SelectItem value="in-progress">
                                     In Progress
                                 </SelectItem>
                                 <SelectItem value="closed">closed</SelectItem>
@@ -309,6 +312,17 @@ export function CaseManagement() {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => {
+                                                        setSelectedCase(
+                                                            caseItem,
+                                                        );
+                                                        setShowViewModal(true); // show a modal with full details
+                                                    }}
+                                                >
+                                                    <Eye className="mr-2 h-4 w-4" />
+                                                    View Full Case
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => {
                                                         deleteCase(
                                                             caseItem._id,
                                                         );
@@ -355,6 +369,11 @@ export function CaseManagement() {
                     />
                 </DialogContent>
             </Dialog>
+            <CaseViewModal
+                show={showViewModal}
+                onClose={setShowViewModal}
+                caseData={selectedCase}
+            />
         </div>
     );
 }
