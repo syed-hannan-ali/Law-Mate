@@ -9,6 +9,7 @@
             "@hooks/*": ["hooks/*"],
             "@stores/*": ["stores/*"],
             "@assets/*": ["assets/*"],
+            "@services/*": ["services/*"],
         }
     }
 }

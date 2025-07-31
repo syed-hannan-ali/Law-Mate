@@ -1,6 +1,4 @@
-// "use client"
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Plus,
     Search,
@@ -10,6 +8,7 @@ import {
     AlertCircle,
     MoreHorizontal,
     Edit,
+    Trash2,
     Eye,
 } from "lucide-react";
 import { Button } from "@components/ui/button";
@@ -39,76 +38,94 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@components/ui/dialog";
 
-const cases = [
-    {
-        id: "CASE-001",
-        title: "Johnson vs. State Insurance",
-        type: "Personal Injury",
-        client: "Robert Johnson",
-        lawyer: "Sarah Wilson",
-        firm: "Wilson Law Group",
-        status: "In Progress",
-        priority: "High",
-        createdDate: "2024-01-10",
-        lastUpdate: "2024-01-15",
-    },
-    {
-        id: "CASE-002",
-        title: "Smith Property Dispute",
-        type: "Real Estate",
-        client: "Mary Smith",
-        lawyer: "John Davis",
-        firm: "Davis & Associates",
-        status: "Open",
-        priority: "Medium",
-        createdDate: "2024-01-12",
-        lastUpdate: "2024-01-14",
-    },
-    {
-        id: "CASE-003",
-        title: "Corporate Merger Review",
-        type: "Corporate Law",
-        client: "TechCorp Inc.",
-        lawyer: "Emily Brown",
-        firm: "Brown Legal",
-        status: "Resolved",
-        priority: "Low",
-        createdDate: "2023-12-15",
-        lastUpdate: "2024-01-08",
-    },
-];
+import { getAllCases, deleteCase, getUsers } from "@services/case-service";
+import CaseForm from "@components/Case-Form";
 
 const statusColors = {
-    Open: "default",
-    "In Progress": "secondary",
-    Resolved: "outline",
-};
-
-const priorityColors = {
-    High: "destructive",
-    Medium: "default",
-    Low: "secondary",
+    open: "secondary",
+    "in-progress": "destructive",
+    closed: "outline",
 };
 
 export function CaseManagement() {
+    const [cases, setCases] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [editingCase, setEditingCase] = useState(null);
+
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [typeFilter, setTypeFilter] = useState("all");
+
+    const [clientList, setClientList] = useState([]);
+    const [staffList, setStaffList] = useState([]);
+
+    useEffect(() => {
+        fetchCases();
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            const res = await getUsers();
+            // console.log(res.data);
+            const List1 = [];
+            const List2 = [];
+
+            res.data.forEach((user) => {
+                if (user.role === "client") {
+                    List1.push(user);
+                } else if (
+                    user.role === "lawyer" ||
+                    user.role === "paralegal"
+                ) {
+                    List2.push(user);
+                }
+                setClientList(List1);
+                setStaffList(List2);
+            });
+        } catch (err) {
+            console.log("Failed to fetch users in case management: ", err);
+        }
+    };
+
+    const fetchCases = async () => {
+        try {
+            const res = await getAllCases();
+            console.log(res.data);
+            setCases(res.data);
+        } catch (err) {
+            console.error("Failed to fetch cases:", err);
+        }
+    };
+
+    const statusCounts = cases.reduce(
+        (acc, caseItem) => {
+            const status = caseItem.status?.toLowerCase(); // normalize to lowercase
+            if (status === "open") acc.open += 1;
+            else if (status === "in-progress") acc.inProgress += 1;
+            else if (status === "closed") acc.closed += 1;
+            return acc;
+        },
+        { open: 0, inProgress: 0, closed: 0 },
+    );
 
     const filteredCases = cases.filter((caseItem) => {
         const matchesSearch =
-            caseItem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            caseItem.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            caseItem.id.toLowerCase().includes(searchTerm.toLowerCase());
+            caseItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            caseItem.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            caseItem._id?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus =
             statusFilter === "all" ||
             caseItem.status.toLowerCase().replace(" ", "") === statusFilter;
-        const matchesType =
-            typeFilter === "all" ||
-            caseItem.type.toLowerCase().replace(" ", "") === typeFilter;
 
-        return matchesSearch && matchesStatus && matchesType;
+        return matchesSearch && matchesStatus;
     });
 
     return (
@@ -122,7 +139,12 @@ export function CaseManagement() {
                         Monitor and manage all legal cases across the platform
                     </p>
                 </div>
-                <Button>
+                <Button
+                    onClick={() => {
+                        setEditingCase(null);
+                        setShowForm(true);
+                    }}
+                >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Case
                 </Button>
@@ -137,10 +159,7 @@ export function CaseManagement() {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">5,672</div>
-                        <p className="text-xs text-muted-foreground">
-                            +23% from last month
-                        </p>
+                        <div className="text-2xl font-bold">{cases.length}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -151,10 +170,9 @@ export function CaseManagement() {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">2,341</div>
-                        <p className="text-xs text-muted-foreground">
-                            41.3% of total
-                        </p>
+                        <div className="text-2xl font-bold">
+                            {statusCounts.open}
+                        </div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -165,24 +183,22 @@ export function CaseManagement() {
                         <AlertCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,892</div>
-                        <p className="text-xs text-muted-foreground">
-                            33.4% of total
-                        </p>
+                        <div className="text-2xl font-bold">
+                            {statusCounts.inProgress}
+                        </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
-                            Resolved
+                            Closed
                         </CardTitle>
                         <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,439</div>
-                        <p className="text-xs text-muted-foreground">
-                            25.3% of total
-                        </p>
+                        <div className="text-2xl font-bold">
+                            {statusCounts.closed}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -213,29 +229,7 @@ export function CaseManagement() {
                                 <SelectItem value="inprogress">
                                     In Progress
                                 </SelectItem>
-                                <SelectItem value="resolved">
-                                    Resolved
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            value={typeFilter}
-                            onValueChange={setTypeFilter}
-                        >
-                            <SelectTrigger className="w-[160px]">
-                                <SelectValue placeholder="Case Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="personalinjury">
-                                    Personal Injury
-                                </SelectItem>
-                                <SelectItem value="realestate">
-                                    Real Estate
-                                </SelectItem>
-                                <SelectItem value="corporatelaw">
-                                    Corporate Law
-                                </SelectItem>
+                                <SelectItem value="closed">closed</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -246,11 +240,9 @@ export function CaseManagement() {
                             <TableRow>
                                 <TableHead>Case ID</TableHead>
                                 <TableHead>Title</TableHead>
-                                <TableHead>Type</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Lawyer</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Priority</TableHead>
                                 <TableHead>Last Update</TableHead>
                                 <TableHead className="text-right">
                                     Actions
@@ -261,46 +253,31 @@ export function CaseManagement() {
                             {filteredCases.map((caseItem) => (
                                 <TableRow key={caseItem.id}>
                                     <TableCell className="font-medium">
-                                        {caseItem.id}
+                                        {caseItem._id.slice(-6).toUpperCase()}
+                                    </TableCell>
+                                    <TableCell>{caseItem.title}</TableCell>
+                                    <TableCell>
+                                        {caseItem.client?.username || "N/A"}
                                     </TableCell>
                                     <TableCell>
-                                        <div>
-                                            <div className="font-medium">
-                                                {caseItem.title}
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {caseItem.firm}
-                                            </div>
-                                        </div>
+                                        {caseItem.assignedStaff?.[0]
+                                            ?.username || "Unassigned"}
                                     </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">
-                                            {caseItem.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{caseItem.client}</TableCell>
-                                    <TableCell>{caseItem.lawyer}</TableCell>
                                     <TableCell>
                                         <Badge
                                             variant={
-                                                statusColors[caseItem.status]
+                                                statusColors[caseItem.status] ||
+                                                "outline"
                                             }
                                         >
                                             {caseItem.status}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant={
-                                                priorityColors[
-                                                    caseItem.priority
-                                                ]
-                                            }
-                                        >
-                                            {caseItem.priority}
-                                        </Badge>
+                                        {new Date(
+                                            caseItem.updatedAt,
+                                        ).toLocaleDateString()}
                                     </TableCell>
-                                    <TableCell>{caseItem.lastUpdate}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -318,21 +295,31 @@ export function CaseManagement() {
                                                 <DropdownMenuLabel>
                                                     Actions
                                                 </DropdownMenuLabel>
-                                                <DropdownMenuItem>
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    View Details
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
+
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        setEditingCase(
+                                                            caseItem,
+                                                        );
+                                                        setShowForm(true);
+                                                    }}
+                                                >
                                                     <Edit className="mr-2 h-4 w-4" />
                                                     Edit Case
                                                 </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        deleteCase(
+                                                            caseItem._id,
+                                                        );
+                                                        fetchCases();
+                                                    }}
+                                                    className="text-red-600"
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Delete Firm
+                                                </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                    Update Status
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    Assign Lawyer
-                                                </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -342,6 +329,32 @@ export function CaseManagement() {
                     </Table>
                 </CardContent>
             </Card>
+            <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingCase ? "Edit Case" : "Add new case"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {editingCase
+                                ? "Update case details"
+                                : "Fill in the details to register a new Case."}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <CaseForm
+                        mode={editingCase ? "edit" : "add"}
+                        caseData={editingCase}
+                        clients={clientList}
+                        staff={staffList}
+                        onSuccess={() => {
+                            fetchCases();
+                            setShowForm(false);
+                        }}
+                        onClose={() => setShowForm(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

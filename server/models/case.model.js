@@ -14,7 +14,7 @@ const CaseSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["open", "in-progress", "closed", "archived"],
+            enum: ["open", "in-progress", "closed"],
             default: "open",
         },
 
@@ -26,7 +26,6 @@ const CaseSchema = new mongoose.Schema(
         client: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
         },
 
         assignedStaff: [

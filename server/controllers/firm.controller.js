@@ -4,9 +4,9 @@ const User = require("@models/user.model.js");
 
 exports.createFirm = async (req, res) => {
     try {
-        console.log(req.body)
+        console.log(req.body);
         const firm = new Firm(req.body);
-        console.log(firm)
+        console.log(firm);
         const saved = await firm.save();
 
         const user = await User.findById(req.userId);
@@ -30,11 +30,10 @@ exports.createFirm = async (req, res) => {
 exports.getAllFirms = async (req, res) => {
     try {
         const firms = await Firm.find({ isDeleted: false })
-            .populate("lawyers")
-            .populate("cases"); 
+            .populate("staff")
+            .populate("cases");
 
-        console.log(firms)
-
+        console.log(firms);
         res.json(firms);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -60,9 +59,16 @@ exports.getFirmById = async (req, res) => {
 
 exports.updateFirm = async (req, res) => {
     try {
+            const allowedFields = ["name", "address", "email", "phone"];
+            const updateData = {};
+
+            allowedFields.forEach((field) => {
+                if (req.body[field]) updateData[field] = req.body[field];
+            });
+
         const updated = await Firm.findOneAndUpdate(
             { _id: req.params.id, isDeleted: false },
-            req.body,
+            updateData,
             { new: true },
         );
 
@@ -112,6 +118,19 @@ exports.deleteFirm = async (req, res) => {
         });
 
         res.json({ message: "Firm deleted (soft) successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getFirmStaffCount = async (req, res) => {
+    try {
+        console.log("Fetching staff count for firm:", req.params);
+        const { firmId } = req.params;
+
+        const count = await User.countDocuments({ firm: firmId, isDeleted: false });
+
+        res.json({ count });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

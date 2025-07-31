@@ -8,11 +8,15 @@ exports.createCase = async (req, res) => {
         const clientId = req.body.client;
         const tittle = req.body.title;
         const description = req.body.description;
+        const staff = req.body.assignedStaff || [];
+        const status = req.body.status || "open";
 
         const newCase = new Case({
             title: tittle,
             description: description,
             client: clientId,
+            assignedStaff: staff,
+            status: status,
             createdBy: userId,
             updatedBy: userId,
         });
@@ -38,7 +42,6 @@ exports.createCase = async (req, res) => {
 
         // const saved = await newCase.save();
         res.status(201).json({
-            message: "Case created successfully",
             case: newCase,
         });
     } catch (err) {
@@ -49,10 +52,13 @@ exports.createCase = async (req, res) => {
 
 exports.getAllCases = async (req, res) => {
     try {
+        console.log("Fetching all cases");
         const cases = await Case.find({ isDeleted: false })
             .populate("client assignedStaff createdBy updatedBy")
             .sort({ createdAt: -1 });
-        res.json(cases);
+
+        console.log("Fetched cases:", cases);
+        res.status(200).json(cases);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -73,17 +79,21 @@ exports.getCaseById = async (req, res) => {
 exports.updateCase = async (req, res) => {
     try {
         const caseId = req.params.id;
-        const updates = { ...req.body, updatedBy: req.user._id };
-
-        const updated = await Case.findOneAndUpdate(
-            { _id: caseId, isDeleted: false },
-            updates,
-            { new: true },
+        console.log(
+            "This is the req body ----------------------------------------------",
         );
+        console.log(req.body);
+        const updates = { ...req.body, updatedBy: req.userId };
+
+        console.log("Updating case with ID:", caseId, "with data:", updates);
+
+        const updated = await Case.findOneAndUpdate({ _id: caseId }, updates, {
+            new: true,
+        });
 
         if (!updated) return res.status(404).json({ error: "Case not found" });
 
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.userId);
 
         // Log audit
         await logAudit({
@@ -99,6 +109,7 @@ exports.updateCase = async (req, res) => {
 
         res.json(updated);
     } catch (err) {
+        console.error("Error updating case:", err);
         res.status(400).json({ error: err.message });
     }
 };
@@ -111,7 +122,7 @@ exports.deleteCase = async (req, res) => {
             { new: true },
         );
         if (!deleted) return res.status(404).json({ error: "Case not found" });
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.userId);
 
         // Log the audit
         await logAudit({

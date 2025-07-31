@@ -8,6 +8,7 @@ const {
     getFirmById,
     updateFirm,
     deleteFirm,
+    getFirmStaffCount
 } = require('@controllers/firm.controller');
 
 const verifyToken = require("@middleware/auth.middleware");
@@ -18,5 +19,6 @@ router.get('/', verifyToken, getAllFirms);          // Get all firms
 router.get('/:id', verifyToken, getFirmById);       // Get a firm by ID
 router.put('/:id', verifyToken, updateFirm);        // Update a firm
 router.delete('/:id', verifyToken, deleteFirm);     // Soft delete a firm
+router.get("/:firmId/staff-count", getFirmStaffCount);
 
 module.exports = router;

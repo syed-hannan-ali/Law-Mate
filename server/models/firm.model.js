@@ -17,7 +17,7 @@ const firmSchema = new Schema({
     phone: {
         type: String,
     },
-    lawyers: [
+    staff: [
         {
             type: Schema.Types.ObjectId,
             ref: "User", // or 'Lawyer' if you have a separate model
