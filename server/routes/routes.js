@@ -5,7 +5,7 @@ const appointmentRoutes = require("./appointment.route.js");
 const caseRoutes = require("./case.route.js");
 const documentRoutes = require("./document.route");
 const caseTimelineRoutes = require("./caseTimeline.route.js");
-// const taskRoutes = require("./task.route");
+const taskRoutes = require("./task.route");
 const firmRoutes = require("./firm.route.js");
 const userRoutes = require("./user.route.js");
 
@@ -19,6 +19,6 @@ router.use("/documents", documentRoutes);
 router.use("/firms",firmRoutes);
 router.use("/users", userRoutes);
 router.use("/case-timelines", caseTimelineRoutes);
-// router.use("/tasks", taskRoutes);
+router.use("/tasks", taskRoutes);
 
 module.exports = router;

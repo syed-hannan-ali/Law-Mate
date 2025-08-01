@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
     Plus,
     Search,
@@ -38,77 +39,78 @@ import {
     SelectValue,
 } from "@components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
-
-const tasks = [
-    {
-        id: 1,
-        title: "Verify new law firm registration",
-        description:
-            "Review and approve Smith & Associates registration documents",
-        assignedTo: "Super Admin",
-        priority: "High",
-        status: "To-do",
-        dueDate: "2024-01-18",
-        createdDate: "2024-01-15",
-        category: "Verification",
-    },
-    {
-        id: 2,
-        title: "Review uploaded contract document",
-        description: "Check contract_v3.pdf for compliance and accuracy",
-        assignedTo: "Legal Reviewer",
-        priority: "Medium",
-        status: "In Progress",
-        dueDate: "2024-01-20",
-        createdDate: "2024-01-14",
-        category: "Document Review",
-    },
-    {
-        id: 3,
-        title: "Process payment dispute",
-        description: "Investigate payment issue for Invoice INV-003",
-        assignedTo: "Finance Team",
-        priority: "High",
-        status: "To-do",
-        dueDate: "2024-01-17",
-        createdDate: "2024-01-15",
-        category: "Finance",
-    },
-    {
-        id: 4,
-        title: "Update platform documentation",
-        description: "Add new features to user manual and help center",
-        assignedTo: "Technical Writer",
-        priority: "Low",
-        status: "Done",
-        dueDate: "2024-01-16",
-        createdDate: "2024-01-10",
-        category: "Documentation",
-    },
-];
-
-const statusColors = {
-    "To-do": "outline",
-    "In Progress": "secondary",
-    Done: "default",
-};
-
-const priorityColors = {
-    High: "destructive",
-    Medium: "default",
-    Low: "secondary",
-};
+import { useEffect } from "react";
+import { getAllTasks, deleteTask, createTask } from "@services/task-service";
+import AddTaskDialog from "@components/add-task-dialog"; // adjust path as needed
+import { getAllCases, getUsers } from "@services/case-service";
 
 export function TaskManagement() {
+    const [tasks, setTasks] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [priorityFilter, setPriorityFilter] = useState("all");
+
+    const [showAddDialog, setShowAddDialog] = useState(false);
+    const [cases, setCases] = useState([]);
+
+    const [staffList, setStaffList] = useState([]);
+
+    useEffect(() => {
+        fetchTasks();
+        fetchCases();
+        fetchUsers();
+    }, []);
+
+    const fetchCases = async () => {
+        try {
+            const res = await getAllCases();
+            setCases(res.data);
+        } catch (err) {
+            console.error("Failed to fetch cases:", err);
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const res = await getUsers();
+            const List1 = [];
+
+            res.data.forEach((user) => {
+                if (user.role === "lawyer" || user.role === "paralegal") {
+                    List1.push(user);
+                }
+                setStaffList(List1);
+            });
+        } catch (err) {
+            console.log("Failed to fetch users in case management: ", err);
+        }
+    };
+    const fetchTasks = async () => {
+        try {
+            const res = await getAllTasks();
+            setTasks(res.data);
+        } catch (err) {
+            console.error("Failed to fetch tasks:", err);
+        }
+    };
+
+    const handleAddTask = async (newTask) => {
+        try {
+            const res = await createTask(newTask); // your API call
+            console.log("Task created:", res.data);
+            setTasks((prev) => [...prev, res.data]);
+        } catch (err) {
+            console.error("Error adding task:", err);
+        }
+    };
 
     const filteredTasks = tasks.filter((task) => {
         const matchesSearch =
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.assignedTo.toLowerCase().includes(searchTerm.toLowerCase());
+            task.assignedTo?.some((user) =>
+                user.username?.toLowerCase().includes(searchTerm.toLowerCase()),
+            );
         const matchesStatus =
             statusFilter === "all" ||
             task.status.toLowerCase().replace(" ", "").replace("-", "") ===
@@ -132,7 +134,7 @@ export function TaskManagement() {
                         platform
                     </p>
                 </div>
-                <Button>
+                <Button onClick={() => setShowAddDialog(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Create Task
                 </Button>
@@ -219,11 +221,16 @@ export function TaskManagement() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="todo">To-do</SelectItem>
-                                <SelectItem value="inprogress">
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="in-progres">
                                     In Progress
                                 </SelectItem>
-                                <SelectItem value="done">Done</SelectItem>
+                                <SelectItem value="completed">
+                                    Completed
+                                </SelectItem>
+                                <SelectItem value="cancelled">
+                                    Cancelled
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                         <Select
@@ -237,6 +244,7 @@ export function TaskManagement() {
                                 <SelectItem value="all">
                                     All Priority
                                 </SelectItem>
+                                <SelectItem value="urgent">Urgent</SelectItem>
                                 <SelectItem value="high">High</SelectItem>
                                 <SelectItem value="medium">Medium</SelectItem>
                                 <SelectItem value="low">Low</SelectItem>
@@ -253,7 +261,6 @@ export function TaskManagement() {
                                 <TableHead>Priority</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Due Date</TableHead>
-                                <TableHead>Category</TableHead>
                                 <TableHead className="text-right">
                                     Actions
                                 </TableHead>
@@ -277,40 +284,43 @@ export function TaskManagement() {
                                             <Avatar className="h-8 w-8">
                                                 <AvatarImage
                                                     src="/placeholder.svg?height=32&width=32"
-                                                    alt={task.assignedTo}
+                                                    alt={
+                                                        task.assignedTo?.[0]
+                                                            ?.username ||
+                                                        "Unassigned"
+                                                    }
                                                 />
                                                 <AvatarFallback>
-                                                    {task.assignedTo
-                                                        .split(" ")
+                                                    {task.assignedTo?.[0]?.username
+                                                        ?.split(" ")
                                                         .map((n) => n[0])
-                                                        .join("")}
+                                                        .join("") || "NA"}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span>{task.assignedTo}</span>
+                                            <span>
+                                                {task.assignedTo?.[0]
+                                                    ?.username || "Unassigned"}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant={
-                                                priorityColors[task.priority]
-                                            }
-                                        >
+                                        <Badge variant={task.priority}>
                                             {task.priority}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant={statusColors[task.status]}
-                                        >
+                                        <Badge variant={task.status}>
                                             {task.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell>{task.dueDate}</TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">
-                                            {task.category}
-                                        </Badge>
+                                        <div className="text-sm">
+                                            {new Date(
+                                                task.dueDate,
+                                            ).toLocaleDateString()}
+                                        </div>
                                     </TableCell>
+
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -337,10 +347,13 @@ export function TaskManagement() {
                                                     Reassign
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                    Update Status
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-600">
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        deleteTask(task.id);
+                                                        fetchTasks();
+                                                    }}
+                                                    className="text-red-600"
+                                                >
                                                     <Trash2 className="mr-2 h-4 w-4" />
                                                     Delete Task
                                                 </DropdownMenuItem>
@@ -353,6 +366,13 @@ export function TaskManagement() {
                     </Table>
                 </CardContent>
             </Card>
+            <AddTaskDialog
+                open={showAddDialog}
+                onClose={() => setShowAddDialog(false)}
+                onSubmit={handleAddTask}
+                cases={cases} // array of case objects: [{ _id, title }]
+                users={staffList} // array of staff users: [{ _id, username }]
+            />
         </div>
     );
 }

@@ -49,14 +49,7 @@ const TaskSchema = new mongoose.Schema(
 
         completedAt: {
             type: Date,
-        },
-
-        notes: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Note",
-            },
-        ],
+        },  
 
         isDeleted: {
             type: Boolean,
