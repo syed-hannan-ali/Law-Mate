@@ -48,10 +48,10 @@ import {
 
 import { getAllCases, deleteCase, getUsers } from "@services/case-service";
 import CaseForm from "@components/Case-Form";
-import CaseViewModal from "@components/case-view-model";
+import { useNavigate } from "react-router-dom";
 
 const statusColors = {
-    open: "secondary",
+    open: "default  ",
     "in-progress": "destructive",
     closed: "outline",
 };
@@ -60,14 +60,14 @@ export function CaseManagement() {
     const [cases, setCases] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingCase, setEditingCase] = useState(null);
-    const [showViewModal, setShowViewModal] = useState(false);
-    const [selectedCase, setSelectedCase] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
 
     const [clientList, setClientList] = useState([]);
     const [staffList, setStaffList] = useState([]);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchCases();
@@ -311,12 +311,11 @@ export function CaseManagement() {
                                                     Edit Case
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() => {
-                                                        setSelectedCase(
-                                                            caseItem,
-                                                        );
-                                                        setShowViewModal(true); // show a modal with full details
-                                                    }}
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `${caseItem._id}`,
+                                                        )
+                                                    }
                                                 >
                                                     <Eye className="mr-2 h-4 w-4" />
                                                     View Full Case
@@ -369,11 +368,6 @@ export function CaseManagement() {
                     />
                 </DialogContent>
             </Dialog>
-            <CaseViewModal
-                show={showViewModal}
-                onClose={setShowViewModal}
-                caseData={selectedCase}
-            />
         </div>
     );
 }

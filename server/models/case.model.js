@@ -48,8 +48,6 @@ const CaseSchema = new mongoose.Schema(
                 ref: "Task",
             },
         ],
-
-
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
