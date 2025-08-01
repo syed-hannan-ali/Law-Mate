@@ -4,7 +4,7 @@ const AuditLog = require("@models/auditLog.model");
 const getAllUsers = async (req, res) => {
     console.log("Fetching all users...");
     try {
-        const users = await User.find({ isDeleted: false }).populate(
+        const users = await User.find({ isDeleted: false }).select("-password").populate(
             "firm",
             "name",
         );

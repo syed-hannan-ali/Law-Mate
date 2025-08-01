@@ -51,9 +51,9 @@ import CaseForm from "@components/Case-Form";
 import { useNavigate } from "react-router-dom";
 
 const statusColors = {
-    open: "default  ",
-    "in-progress": "destructive",
-    closed: "outline",
+    open: "green",
+    "in-progress": "yellow",
+    closed: "gray",
 };
 
 export function CaseManagement() {

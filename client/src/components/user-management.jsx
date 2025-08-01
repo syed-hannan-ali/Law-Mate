@@ -41,6 +41,14 @@ import {
 } from "@components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 
+const roleColors = {
+    admin : "red",
+    lawyer : "blue",
+    paralegal : "purple",
+    client : "green"
+
+}
+
 export function UserManagement() {
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -183,7 +191,7 @@ export function UserManagement() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">
+                                        <Badge variant={roleColors[user.role]}>
                                             {user.role}
                                         </Badge>
                                     </TableCell>
