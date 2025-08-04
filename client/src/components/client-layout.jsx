@@ -53,8 +53,6 @@ const navigationItems = [
     {
         title: "Management",
         items: [
-            { title: "Users", icon: Users, key: "users" },
-            { title: "Law Firms", icon: Building2, key: "firms" },
             { title: "Cases", icon: FileText, key: "cases" },
             { title: "Appointments", icon: Calendar, key: "appointments" },
         ],
@@ -63,8 +61,6 @@ const navigationItems = [
         title: "Operations",
         items: [
             { title: "Documents", icon: FolderOpen, key: "documents" },
-            { title: "Invoices", icon: Receipt, key: "invoices" },
-            { title: "Payments", icon: CreditCard, key: "payments" },
             { title: "Tasks", icon: CheckSquare, key: "tasks" },
         ],
     },
@@ -74,7 +70,7 @@ const navigationItems = [
     },
 ];
 
-export function AdminLayout() {
+export function StaffLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -117,7 +113,7 @@ export function AdminLayout() {
                                 LawMate
                             </span>
                             <span className="text-xs text-muted-foreground">
-                                Admin Dashboard
+                                Client Dashboard
                             </span>
                         </div>
                     </div>
@@ -133,11 +129,11 @@ export function AdminLayout() {
                                             <SidebarMenuButton
                                                 isActive={
                                                     location.pathname ===
-                                                    `/admin/${item.key === "dashboard" ? "" : item.key}`
+                                                    `/staff/${item.key === "dashboard" ? "" : item.key}`
                                                 }
                                                 onClick={() =>
                                                     navigate(
-                                                        `/admin/${item.key === "dashboard" ? "" : item.key}`,
+                                                        `/staff/${item.key === "dashboard" ? "" : item.key}`,
                                                     )
                                                 }
                                             >
@@ -236,7 +232,7 @@ export function AdminLayout() {
                 <main className="flex-1 space-y-4 p-6">
                     <Outlet />
                 </main>
-            </SidebarInset>  
+            </SidebarInset>
         </SidebarProvider>
     );
 }

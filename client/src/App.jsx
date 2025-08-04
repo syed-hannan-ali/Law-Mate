@@ -14,6 +14,7 @@ import LegalLandingPage from "@components/LegalLandingPage";
 import AdminPage from "@pages/AdminPage";
 import Unauthorized from "@components/unauthorized";
 import LawyerParalegalPage from "@pages/LawyerParalegalPage";
+import ClientPage from "@pages/ClientPage";
 import { Toaster } from "sonner";
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="/admin/*" element={<AdminPage />} />
                     <Route path="/staff/*" element={<LawyerParalegalPage />} />
+                    <Route path="/client/*" element={<ClientPage />} />
                 </Routes>
             </Router>
             <Toaster position="top-right" richColors closeButton />

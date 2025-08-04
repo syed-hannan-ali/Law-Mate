@@ -51,13 +51,26 @@ exports.createCase = async (req, res) => {
 };
 
 exports.getAllCases = async (req, res) => {
+    const requestingUserId = req.userId;
+    const requestingUser = await User.findById(requestingUserId);
+
+    let query = { isDeleted: false };
     try {
         console.log("Fetching all cases");
-        const cases = await Case.find({ isDeleted: false })
+        if (
+            requestingUser.role === "lawyer" ||
+            requestingUser.role === "paralegal"
+        ) {
+            query.assignedStaff = requestingUserId;
+        } else if (requestingUser.role === "client") {
+            query.client = requestingUserId;
+        }
+        const cases = await Case.find(query)
             .populate("client assignedStaff createdBy updatedBy")
             .sort({ createdAt: -1 });
 
-        console.log("Fetched cases:", cases);
+        console.log("Cases fetched successfully:", cases.length);
+
         res.status(200).json(cases);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -70,7 +83,6 @@ exports.getCaseById = async (req, res) => {
         const found = await Case.findById(req.params.id);
         if (!found || found.isDeleted)
             return res.status(404).json({ error: "Case not found" });
-        
 
         await found.populate("client assignedStaff createdBy updatedBy");
         res.json(found);

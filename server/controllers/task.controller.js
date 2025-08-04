@@ -1,17 +1,33 @@
 const Task = require("@models/task.model.js");
+const User = require("@models/user.model.js");
 
 // Get all tasks (with optional case ID filter)
 exports.getAllTasks = async (req, res) => {
+    console.log("Fetching all tasks");
+    const requestingUserId = req.userId;
+    const requestingUser = await User.findById(requestingUserId);
+
+    let query = { isDeleted: false };
+
     try {
-        const filter = { isDeleted: false };
         if (req.query.caseId) {
-            filter.case = req.query.caseId;
+            query.case = req.query.caseId;
+        }
+        if (
+            requestingUser.role === "lawyer" ||
+            requestingUser.role === "paralegal" ||
+            requestingUser.role === "client"
+        ) {
+            query.assignedTo = requestingUserId;
+
         }
 
-        const tasks = await Task.find(filter)
+        const tasks = await Task.find(query)
             .populate("assignedTo", "username email role")
             .populate("createdBy", "username email")
             .populate("case", "title description status");
+
+        console.log("Tasks fetched successfully:", tasks.length);
 
         res.json(tasks);
     } catch (err) {
