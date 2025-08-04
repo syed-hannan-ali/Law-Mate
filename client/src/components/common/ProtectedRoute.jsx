@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import useAuthStore from "@stores/authStore";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ allowedRoles = [],children }) {
      const user = useAuthStore((state) => state.user);
 
      console.log(user);
@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children }) {
         return <Navigate to="/login" replace />;
     }
 
-    if (user.role !== "admin") {
+    if (!allowedRoles.includes(user.role)) {
         return <Navigate to="/" replace />;
     }
 

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@hooks/useAuth";
+import useAuthStore from "@stores/authStore";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
@@ -20,6 +21,7 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const { handleLogin, isLoading, error, clearError } = useAuth();
+    const navigate = useNavigate();
 
     const formSubmitHandler = async (e) => {
         e.preventDefault();
@@ -30,6 +32,34 @@ export default function Login() {
             // Clear form
             setEmail("");
             setPassword("");
+
+            if (result.success) {
+                // Clear form
+                setEmail("");
+                setPassword("");
+
+                const userRole = result.data.user.role;
+
+                console.log(userRole)
+
+                // Navigate based on the user's role
+                switch (userRole) {
+                    case "admin":
+                        navigate("/admin");
+                        break;
+                    case "lawyer":
+                    case "paralegal":
+                        navigate("/staff");
+                        break;
+                    case "client":
+                        navigate("/client");
+                        break;
+                    default:
+                        // If the role is unknown or not handled, navigate to a default page
+                        navigate("/unauthorize");
+                        break;
+                }
+            }
         }
         // Error handling is managed by the store
     };

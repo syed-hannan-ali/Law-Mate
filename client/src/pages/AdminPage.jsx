@@ -21,7 +21,7 @@ export default function AdminDashboard() {
                 <Route path="firms" element={<FirmManagement />} />
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />
-                <Route
+                <Route      
                     path="appointments"
                     element={<AppointmentManagement />}
                 />

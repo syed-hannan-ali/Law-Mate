@@ -280,27 +280,33 @@ export function TaskManagement() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center space-x-2">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage
-                                                    src="/placeholder.svg?height=32&width=32"
-                                                    alt={
-                                                        task.assignedTo?.[0]
-                                                            ?.username ||
-                                                        "Unassigned"
-                                                    }
-                                                />
-                                                <AvatarFallback>
-                                                    {task.assignedTo?.[0]?.username
-                                                        ?.split(" ")
-                                                        .map((n) => n[0])
-                                                        .join("") || "NA"}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span>
-                                                {task.assignedTo?.[0]
-                                                    ?.username || "Unassigned"}
-                                            </span>
+                                        <div className="flex items-center -space-x-3">
+                                            {task.assignedTo &&
+                                            task.assignedTo.length > 0 ? (
+                                                task.assignedTo.map((user) => (
+                                                    <Avatar
+                                                        key={user._id}
+                                                        className="h-8 w-8 ring-2 ring-blue"
+                                                    >
+                                                        <AvatarImage
+                                                            src="/placeholder.svg"
+                                                            alt={user.username}
+                                                        />
+                                                        <AvatarFallback>
+                                                            {user.username
+                                                                ?.split(" ")
+                                                                .map(
+                                                                    (n) => n[0],
+                                                                )
+                                                                .join("")}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                ))
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    Unassigned
+                                                </span>
+                                            )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
