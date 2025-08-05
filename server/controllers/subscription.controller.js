@@ -30,6 +30,35 @@ exports.createSubscriptionPlan = async (req, res) => {
     }
 };
 
+
+exports.editSubscriptionPlan = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, price, durationInDays, features } = req.body;
+
+        const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(
+            id,
+            {
+                name,
+                price,
+                durationInDays,
+                features,
+            },
+            { new: true }
+        );
+
+        if (!updatedPlan) {
+            return res.status(404).json({ message: "Subscription plan not found" });
+        }
+
+        res.status(200).json(updatedPlan);
+    } catch (err) {
+        console.error("Error updating subscription plan:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
 // Assign a subscription plan to a firm
 exports.assignSubscriptionToFirm = async (req, res) => {
     try {
@@ -62,5 +91,33 @@ exports.assignSubscriptionToFirm = async (req, res) => {
     } catch (err) {
         console.error("Error assigning subscription:", err);
         res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+exports.getAllSubscriptions = async (req, res) => {
+    console.log("Fetching all subscriptions");
+    try {
+        const plans = await SubscriptionPlan.find().sort({ price: 1 });;
+        console.log("total plans found:", plans.length);
+        res.status(200).json(plans);
+    } catch (err) {
+        console.error("Error fetching subscriptions:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+exports.deleteSubscription = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await SubscriptionPlan.findByIdAndDelete(id);
+
+        if (!deleted) {
+            return res.status(404).json({ error: "Subscription not found" });
+        }
+
+        res.status(200).json({ message: "Subscription deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting subscription:", err);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 };

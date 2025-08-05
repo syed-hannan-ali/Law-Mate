@@ -13,5 +13,13 @@ router.post(
     verifyToken,
     subscriptionController.assignSubscriptionToFirm,
 );
+router.put(
+    "/:id",
+    verifyToken,
+    subscriptionController.editSubscriptionPlan,
+);
+
+router.get("/", subscriptionController.getAllSubscriptions);
+router.delete("/:id", verifyToken, subscriptionController.deleteSubscription);
 
 module.exports = router;

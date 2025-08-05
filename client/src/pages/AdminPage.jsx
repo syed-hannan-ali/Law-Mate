@@ -10,7 +10,8 @@ import { InvoiceManagement } from "@components/invoice-management";
 import { PaymentManagement } from "@components/payment-management";
 import { TaskManagement } from "@components/task-management";
 import { AdminLayout } from "@components/admin-layout";
-import {CaseDetails} from "@components/CaseDetail";
+import { CaseDetails } from "@components/CaseDetail";
+import { SubscriptionManagement } from "@components/subscription-management";
 
 export default function AdminDashboard() {
     return (
@@ -21,12 +22,15 @@ export default function AdminDashboard() {
                 <Route path="firms" element={<FirmManagement />} />
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />
-                <Route      
+                <Route
                     path="appointments"
                     element={<AppointmentManagement />}
                 />
+                <Route
+                    path="subscriptions"
+                    element={<SubscriptionManagement />}
+                />
                 <Route path="audit" element={<AuditLogs />} />
-                <Route path="documents" element={<DocumentManagement />} />
                 <Route path="invoices" element={<InvoiceManagement />} />
                 <Route path="payments" element={<PaymentManagement />} />
                 <Route path="tasks" element={<TaskManagement />} />

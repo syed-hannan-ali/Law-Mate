@@ -10,6 +10,7 @@ import {
     FileText,
     Calendar,
     Shield,
+    BadgeDollarSign,
     FolderOpen,
     Receipt,
     CreditCard,
@@ -55,17 +56,18 @@ const navigationItems = [
         items: [
             { title: "Users", icon: Users, key: "users" },
             { title: "Law Firms", icon: Building2, key: "firms" },
-            { title: "Cases", icon: FileText, key: "cases" },
-            { title: "Appointments", icon: Calendar, key: "appointments" },
+            {
+                title: "Subscription Plans",
+                icon: CreditCard,
+                key: "subscriptions",
+            },
         ],
     },
     {
         title: "Operations",
         items: [
-            { title: "Documents", icon: FolderOpen, key: "documents" },
             { title: "Invoices", icon: Receipt, key: "invoices" },
-            { title: "Payments", icon: CreditCard, key: "payments" },
-            { title: "Tasks", icon: CheckSquare, key: "tasks" },
+            { title: "Payments", icon: BadgeDollarSign, key: "payments" },
         ],
     },
     {
@@ -236,7 +238,7 @@ export function AdminLayout() {
                 <main className="flex-1 space-y-4 p-6">
                     <Outlet />
                 </main>
-            </SidebarInset>  
+            </SidebarInset>
         </SidebarProvider>
     );
 }

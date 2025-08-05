@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import dashboardImage from "@assets/admin-dashboard.png";
 import {
@@ -20,6 +19,7 @@ import {
     CardTitle,
 } from "@components/ui/card";
 import { Badge } from "@components/ui/badge";
+import { getAllPlans } from "@services/subscription-service";
 
 const features = [
     {
@@ -67,6 +67,19 @@ const testimonials = [
 
 export default function LegalLandingPage() {
     const [user, setUser] = useState(null);
+    const [plans, setPlans] = useState([]);
+
+    useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const res = await getAllPlans();
+                setPlans(res.data);
+            } catch (err) {
+                console.error("Failed to fetch subscription plans", err);
+            }
+        };
+        fetchPlans();
+    }, []);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -153,6 +166,51 @@ export default function LegalLandingPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Pricing Section */}
+            <section id="pricing" className="py-24 sm:py-32 bg-gray-100">
+                <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
+                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                        Flexible Subscription Plans
+                    </h2>
+                    <p className="mt-4 text-lg text-gray-600">
+                        Choose the right plan for your firm’s needs.
+                    </p>
+
+                    <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {plans.map((plan) => (
+                            <Card
+                                key={plan._id}
+                                className="flex flex-col justify-between border border-muted shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <CardHeader>
+                                    <CardTitle className="text-2xl font-semibold">
+                                        {plan.name}
+                                    </CardTitle>
+                                    <div className="text-3xl font-bold text-primary">
+                                        ${(plan.price / 100).toFixed(2)}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        Duration: {plan.durationInDays} days
+                                    </p>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-3">
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {plan.features.map((f, i) => (
+                                            <Badge key={i} variant="outline">
+                                                {f.key}: {String(f.value)}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    <Button size="lg" className="mt-4">
+                                        Choose Plan
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
             {/* Features Section */}
             <section id="features" className="py-24 sm:py-32">
