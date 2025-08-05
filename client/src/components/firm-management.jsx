@@ -213,6 +213,7 @@ export function FirmManagement() {
                                 <TableHead>Staff</TableHead>
                                 <TableHead>Active Cases</TableHead>
                                 <TableHead>Contact</TableHead>
+                                <TableHead>Subscription Plan</TableHead>
                                 <TableHead>Created at</TableHead>
                                 <TableHead className="text-right">
                                     Actions
@@ -264,6 +265,9 @@ export function FirmManagement() {
                                                 {firm.phone}
                                             </div>
                                         </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {firm.subscription?.plan?.name || "—"}
                                     </TableCell>
                                     <TableCell>
                                         <div>
