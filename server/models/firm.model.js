@@ -14,6 +14,16 @@ const firmSchema = new Schema({
         type: String,
         lowercase: true,
     },
+    subscription: {
+        plan: {
+            type: Schema.Types.ObjectId,
+            ref: "SubscriptionPlan",
+        },
+        startDate: Date,
+        endDate: Date,
+        isActive: { type: Boolean, default: false },
+    },
+
     phone: {
         type: String,
     },
