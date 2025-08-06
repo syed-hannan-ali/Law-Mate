@@ -20,6 +20,9 @@ import {
 } from "@components/ui/card";
 import { Badge } from "@components/ui/badge";
 import { getAllPlans } from "@services/subscription-service";
+import { loadStripe } from "@stripe/stripe-js";
+
+import axios from "@config/axios";
 
 const features = [
     {
@@ -87,6 +90,32 @@ export default function LegalLandingPage() {
             setUser(JSON.parse(storedUser));
         }
     }, []);
+
+    const handlePayment = async (plan) => {
+        const stripe = await loadStripe(
+            "pk_test_51Rt6JHFHLlXcTBsrTXyMcgXiJQBaQTUJOKxR8iS5MDTjfEnSzo8LUuds1bwoTnUp7ezrTjaZCSwZj4zS0vH9Gpee00B8zkQ6Zv",
+        );
+
+        const body = {
+            invoice: plan,
+        };
+
+        const headers = {
+            "content-type": "application/json",
+        };
+
+        const session = await axios.post("/stripe/create-checkout-session", body, {
+            headers,
+        });
+
+        const result = stripe.redirectToCheckout({
+            sessionId: session.data.id,
+        });
+
+        if (result.error) {
+            console.error("Stripe checkout error:", result.error.message);
+        }
+    };
 
     return (
         <div className="bg-white">
@@ -202,7 +231,14 @@ export default function LegalLandingPage() {
                                             </Badge>
                                         ))}
                                     </div>
-                                    <Button size="lg" className="mt-4">
+                                    <Button
+                                        onClick={() => {
+                                            console.log("Plan selected:", plan);
+                                            handlePayment(plan);
+                                        }}
+                                        size="lg"
+                                        className="mt-4"
+                                    >
                                         Choose Plan
                                     </Button>
                                 </CardContent>

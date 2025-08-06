@@ -9,6 +9,7 @@ const taskRoutes = require("./task.route");
 const firmRoutes = require("./firm.route.js");
 const userRoutes = require("./user.route.js");
 const subscriptionRoutes = require("./subscription.route.js");
+const stripeRoutes = require("./stripe-route.js");
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use("/users", userRoutes);
 router.use("/case-timelines", caseTimelineRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/subscriptions", subscriptionRoutes);
+router.use("/stripe", stripeRoutes);
 
 module.exports = router;
