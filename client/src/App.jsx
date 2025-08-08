@@ -15,6 +15,7 @@ import AdminPage from "@pages/AdminPage";
 import Unauthorized from "@components/unauthorized";
 import LawyerParalegalPage from "@pages/LawyerParalegalPage";
 import ClientPage from "@pages/ClientPage";
+import ChatPage from "@components/chat-interface";
 import { Toaster } from "sonner";
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
                     <Route path="/admin/*" element={<AdminPage />} />
                     <Route path="/staff/*" element={<LawyerParalegalPage />} />
                     <Route path="/client/*" element={<ClientPage />} />
+                    <Route path="/chat" element={<ChatPage />} />
                 </Routes>
             </Router>
             <Toaster position="top-right" richColors closeButton />

@@ -6,11 +6,12 @@ import { DocumentManagement } from "@components/document-management";
 import { TaskManagement } from "@components/task-management";
 import { StaffLayout } from "@components/staff-layout";
 import { CaseDetails } from "@components/CaseDetail";
+import { ClientLayout } from "@components/client-layout";
 
 export default function lawyerParalegalPage() {
     return (
         <Routes>
-            <Route path="/" element={<StaffLayout />}>
+            <Route path="/" element={<ClientLayout />}>
                 <Route index element={<DashboardOverview />} />
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />

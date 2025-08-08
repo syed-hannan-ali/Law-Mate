@@ -70,7 +70,7 @@ const navigationItems = [
     },
 ];
 
-export function StaffLayout() {
+export function ClientLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -129,11 +129,11 @@ export function StaffLayout() {
                                             <SidebarMenuButton
                                                 isActive={
                                                     location.pathname ===
-                                                    `/staff/${item.key === "dashboard" ? "" : item.key}`
+                                                    `/client/${item.key === "dashboard" ? "" : item.key}`
                                                 }
                                                 onClick={() =>
                                                     navigate(
-                                                        `/staff/${item.key === "dashboard" ? "" : item.key}`,
+                                                        `/client/${item.key === "dashboard" ? "" : item.key}`,
                                                     )
                                                 }
                                             >

@@ -129,11 +129,11 @@ export function StaffLayout() {
                                             <SidebarMenuButton
                                                 isActive={
                                                     location.pathname ===
-                                                    `/client/${item.key === "dashboard" ? "" : item.key}`
+                                                    `/staff/${item.key === "dashboard" ? "" : item.key}`
                                                 }
                                                 onClick={() =>
                                                     navigate(
-                                                        `/client/${item.key === "dashboard" ? "" : item.key}`,
+                                                        `/staff/${item.key === "dashboard" ? "" : item.key}`,
                                                     )
                                                 }
                                             >

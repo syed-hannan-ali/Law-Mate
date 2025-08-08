@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Shield, User, LogOut } from "lucide-react";
+import { Menu, Shield, User, LogOut, MessageCircle } from "lucide-react";
 import { Button } from "@components/ui/button";
 import {
     DropdownMenu,
@@ -26,6 +26,7 @@ const navigation = [
     { name: "Features", href: "#features" },
     { name: "About", href: "#about" },
     { name: "Contact", href: "#contact" },
+    { name: "Chat", href: "/chat" },
 ];
 
 export default function Header() {
@@ -118,6 +119,10 @@ export default function Header() {
                                 <DropdownMenuItem>
                                     <User className="mr-2 h-4 w-4" />
                                     <span>Profile</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate('/chat')}>
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    <span>Chat with AI</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -215,7 +220,18 @@ export default function Header() {
                                                     </div>
                                                 </div>
                                                 <Button
-                                                    onClick={handleLogout}
+                                                    onClick={() => {
+                                                        navigate('/chat');
+                                                        setMobileMenuOpen(false);
+                                                    }}
+                                                    variant="ghost"
+                                                    className="w-full justify-start"
+                                                >
+                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                    Chat with AI
+                                                </Button>
+                                                <Button
+                                                    onClick={handleLogoutClick}
                                                     variant="ghost"
                                                     className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                                                 >

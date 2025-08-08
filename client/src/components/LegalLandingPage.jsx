@@ -8,6 +8,7 @@ import {
     Clock,
     CheckCircle,
     Star,
+    MessageCircle,
 } from "lucide-react";
 import Header from "@components/header";
 import { Button } from "@components/ui/button";
@@ -48,6 +49,12 @@ const features = [
         description:
             "Accurate time tracking and billing with detailed reports and client invoicing integration.",
         icon: Clock,
+    },
+    {
+        name: "AI Legal Assistant",
+        description:
+            "Get instant legal guidance and answers to your questions with our AI-powered chatbot.",
+        icon: MessageCircle,
     },
 ];
 
@@ -338,6 +345,59 @@ export default function LegalLandingPage() {
                                 </CardContent>
                             </Card>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Chat Section */}
+            <section className="bg-gradient-to-r from-blue-50 to-indigo-50 py-24 sm:py-32">
+                <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                    <div className="mx-auto max-w-2xl text-center">
+                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                            Get Instant Legal Guidance
+                        </h2>
+                        <p className="mt-6 text-lg leading-8 text-gray-600">
+                            Ask our AI legal assistant anything. Get quick answers to legal questions, 
+                            document guidance, and case law references in real-time.
+                        </p>
+                        <div className="mt-10 flex items-center justify-center gap-x-6">
+                            <Button size="lg" asChild>
+                                <a href="/chat">Start Chatting</a>
+                            </Button>
+                            <Button variant="outline" size="lg">
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Learn More
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    {/* Chat Preview */}
+                    <div className="mt-16 mx-auto max-w-4xl">
+                        <Card className="bg-white shadow-xl">
+                            <CardHeader>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <MessageCircle className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <CardTitle>AI Legal Assistant</CardTitle>
+                                        <CardDescription>Powered by advanced AI</CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex justify-start">
+                                    <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[80%]">
+                                        <p className="text-sm">"What are the requirements for filing a trademark application?"</p>
+                                    </div>
+                                </div>
+                                <div className="flex justify-start">
+                                    <div className="bg-blue-600 text-white rounded-lg px-4 py-2 max-w-[80%]">
+                                        <p className="text-sm">To file a trademark application, you need: 1) A distinctive mark, 2) Intent to use in commerce, 3) Proper classification of goods/services, 4) Filing fee, and 5) Specimen showing use (if already in use).</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </section>
