@@ -68,7 +68,7 @@ exports.loginUser = async (req, res) => {
                 .status(400)
                 .json({ error: "Email and password are required." });
         }
-        const user = await User.findOne({ email }).select("+hashedPassword");
+        const user = await User.findOne({ email }).select("+hashedPassword").populate("firm");
         if (!user) {
             return res.status(401).json({ error: "User not Found" });
         }
@@ -103,18 +103,24 @@ exports.loginUser = async (req, res) => {
             secure: false, // true in production (HTTPS)
             sameSite: "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        })
-            .status(200)
-            .json({
-                message: "Login successful",
-                token,
-                user: {
-                    id: user._id,
-                    email: user.email,
-                    name: user.username,
-                    role: user.role,
-                },
-            });
+        });
+
+        let hasActiveSubscription = user.firm?.subscription?.isActive || false;
+
+        console.log("Firm has active subscription:", hasActiveSubscription);
+
+        res.status(200).json({
+            message: "Login successful",
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.username,
+                role: user.role,
+                hasActiveSubscription,
+            },
+        });
+        
     } catch (error) {
         res.status(500).json({ message: "Login failed", error: error });
     }

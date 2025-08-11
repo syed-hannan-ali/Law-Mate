@@ -38,26 +38,44 @@ export default function Login() {
                 setEmail("");
                 setPassword("");
 
+                console.log("Login successful:", result.data);
+
                 const userRole = result.data.user.role;
+                const firmHasActiveSubscription =
+                    result.data.user.hasActiveSubscription;
 
-                console.log(userRole)
+                    console.log(result.data.user);
 
-                // Navigate based on the user's role
-                switch (userRole) {
-                    case "admin":
-                        navigate("/admin");
-                        break;
-                    case "lawyer":
-                    case "paralegal":
-                        navigate("/staff");
-                        break;
-                    case "client":
-                        navigate("/client");
-                        break;
-                    default:
-                        // If the role is unknown or not handled, navigate to a default page
-                        navigate("/unauthorize");
-                        break;
+                console.log("User role:", userRole);
+                console.log(
+                    "Firm has active subscription:",
+                    firmHasActiveSubscription,
+                );
+
+                if (
+                    !firmHasActiveSubscription &&
+                    (userRole === "lawyer" || userRole === "paralegal")
+                ) {
+                    // Only staff & admin get asked to subscribe
+                    console.log("Redirecting to subscription page");
+                    navigate("/subscribe");
+                } else {
+                    switch (userRole) {
+                        case "admin":
+                            navigate("/admin");
+                            break;
+                        case "lawyer":
+                        case "paralegal":
+                            navigate("/staff");
+                            break;
+                        case "client":
+                            navigate("/client");
+                            break;
+                        default:
+                            // If the role is unknown or not handled, navigate to a default page
+                            navigate("/unauthorize");
+                            break;
+                    }
                 }
             }
         }

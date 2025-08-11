@@ -16,7 +16,9 @@ import Unauthorized from "@components/unauthorized";
 import LawyerParalegalPage from "@pages/LawyerParalegalPage";
 import ClientPage from "@pages/ClientPage";
 import ChatPage from "@components/chat-interface";
+import SubscriptionPage from "@components/SubscriptionPage";
 import { Toaster } from "sonner";
+import PaymentSuccess from "@components/paymentSuccess";
 
 export default function App() {
     const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -34,6 +36,13 @@ export default function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/oauth-success" element={<OAuthSuccess />} />
+                    <Route path="/subscribe" element={<SubscriptionPage />} />
+                    <Route
+                        path="/subscription/success"
+                        element={<PaymentSuccess />}
+                    />
+
+                    {/* Protected Routes */}
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="/admin/*" element={<AdminPage />} />
                     <Route path="/staff/*" element={<LawyerParalegalPage />} />
