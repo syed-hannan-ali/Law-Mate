@@ -3,20 +3,26 @@ const Firm = require("@models/firm.model");
 
 // Create a new subscription plan
 exports.createSubscriptionPlan = async (req, res) => {
+    console.log("Creating subscription plan with data:", req.body);
     try {
-        const { name, price, durationInDays, features } = req.body;
+        const { name, price, durationInDays, stripeId, features } = req.body;
 
         // Basic validation
-        if (!name || price==null || !durationInDays) {
+        if (!name || price == null || !stripeId || !durationInDays) {
             return res.status(400).json({ message: "Missing required fields" });
         }
+
+        console.log("Creating new subscription plan with name:", name);
 
         const newPlan = new SubscriptionPlan({
             name,
             price,
             durationInDays,
+            stripeId,
             features,
         });
+
+        console.log("Creating new subscription plan:", newPlan);
 
         await newPlan.save();
 
@@ -30,11 +36,10 @@ exports.createSubscriptionPlan = async (req, res) => {
     }
 };
 
-
 exports.editSubscriptionPlan = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, price, durationInDays, features } = req.body;
+        const { name, price, durationInDays, stripeId ,features } = req.body;
 
         const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(
             id,
@@ -42,13 +47,16 @@ exports.editSubscriptionPlan = async (req, res) => {
                 name,
                 price,
                 durationInDays,
+                stripeId,
                 features,
             },
-            { new: true }
+            { new: true },
         );
 
         if (!updatedPlan) {
-            return res.status(404).json({ message: "Subscription plan not found" });
+            return res
+                .status(404)
+                .json({ message: "Subscription plan not found" });
         }
 
         res.status(200).json(updatedPlan);
@@ -57,7 +65,6 @@ exports.editSubscriptionPlan = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
 
 // Assign a subscription plan to a firm
 exports.assignSubscriptionToFirm = async (req, res) => {
@@ -97,7 +104,7 @@ exports.assignSubscriptionToFirm = async (req, res) => {
 exports.getAllSubscriptions = async (req, res) => {
     console.log("Fetching all subscriptions");
     try {
-        const plans = await SubscriptionPlan.find().sort({ price: 1 });;
+        const plans = await SubscriptionPlan.find().sort({ price: 1 });
         console.log("total plans found:", plans.length);
         res.status(200).json(plans);
     } catch (err) {

@@ -15,6 +15,7 @@ export default function FirmForm({ firm = null, onSuccess }) {
         address: "",
         email: "",
         phone: "",
+        owner: null, // Assuming owner is set elsewhere, e.g., from context or props
     });
 
     useEffect(() => {

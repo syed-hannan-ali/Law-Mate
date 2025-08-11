@@ -103,17 +103,19 @@ export default function LegalLandingPage() {
             "pk_test_51Rt6JHFHLlXcTBsrTXyMcgXiJQBaQTUJOKxR8iS5MDTjfEnSzo8LUuds1bwoTnUp7ezrTjaZCSwZj4zS0vH9Gpee00B8zkQ6Zv",
         );
 
-        const body = {
-            invoice: plan,
-        };
+        console.log("Initiating payment for plan:", plan);
 
         const headers = {
             "content-type": "application/json",
         };
 
-        const session = await axios.post("/stripe/create-checkout-session", body, {
-            headers,
-        });
+        const session = await axios.post(
+            "/stripe/create-checkout-session",
+            plan,
+            {
+                headers,
+            },
+        );
 
         const result = stripe.redirectToCheckout({
             sessionId: session.data.id,
@@ -240,7 +242,6 @@ export default function LegalLandingPage() {
                                     </div>
                                     <Button
                                         onClick={() => {
-                                            console.log("Plan selected:", plan);
                                             handlePayment(plan);
                                         }}
                                         size="lg"
@@ -357,8 +358,9 @@ export default function LegalLandingPage() {
                             Get Instant Legal Guidance
                         </h2>
                         <p className="mt-6 text-lg leading-8 text-gray-600">
-                            Ask our AI legal assistant anything. Get quick answers to legal questions, 
-                            document guidance, and case law references in real-time.
+                            Ask our AI legal assistant anything. Get quick
+                            answers to legal questions, document guidance, and
+                            case law references in real-time.
                         </p>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
                             <Button size="lg" asChild>
@@ -370,7 +372,7 @@ export default function LegalLandingPage() {
                             </Button>
                         </div>
                     </div>
-                    
+
                     {/* Chat Preview */}
                     <div className="mt-16 mx-auto max-w-4xl">
                         <Card className="bg-white shadow-xl">
@@ -380,20 +382,34 @@ export default function LegalLandingPage() {
                                         <MessageCircle className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
-                                        <CardTitle>AI Legal Assistant</CardTitle>
-                                        <CardDescription>Powered by advanced AI</CardDescription>
+                                        <CardTitle>
+                                            AI Legal Assistant
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Powered by advanced AI
+                                        </CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex justify-start">
                                     <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[80%]">
-                                        <p className="text-sm">"What are the requirements for filing a trademark application?"</p>
+                                        <p className="text-sm">
+                                            "What are the requirements for
+                                            filing a trademark application?"
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="flex justify-start">
                                     <div className="bg-blue-600 text-white rounded-lg px-4 py-2 max-w-[80%]">
-                                        <p className="text-sm">To file a trademark application, you need: 1) A distinctive mark, 2) Intent to use in commerce, 3) Proper classification of goods/services, 4) Filing fee, and 5) Specimen showing use (if already in use).</p>
+                                        <p className="text-sm">
+                                            To file a trademark application, you
+                                            need: 1) A distinctive mark, 2)
+                                            Intent to use in commerce, 3) Proper
+                                            classification of goods/services, 4)
+                                            Filing fee, and 5) Specimen showing
+                                            use (if already in use).
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>

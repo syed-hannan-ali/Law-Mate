@@ -4,7 +4,11 @@ const router = express.Router();
 
 router.post("/create-checkout-session", async (req, res) => {
     console.log(req.body);
-    const  priceId = "price_1Rt6O1FHLlXcTBsr7SYxDpEZ";
+
+    console.log("Received request to create checkout session");
+
+    const priceId = req.body.stripeId;
+
 
     try {
         const session = await stripe.checkout.sessions.create({

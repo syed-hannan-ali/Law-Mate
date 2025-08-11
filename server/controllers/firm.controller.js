@@ -6,16 +6,34 @@ const SubscriptionPlan = require("@models/subscriptionPlan.model.js");
 exports.createFirm = async (req, res) => {
     try {
         console.log("Creating firm with data:", req.body);
-        const firm = new Firm(req.body);
 
+        // 1️⃣ Find logged-in user (based on email from req.user)
+        console.log("Finding user by email:", req.body.email);
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) {
+            return res.status(404).json({ error: "Owner user not found" });
+        }
+
+        // 2️⃣ Create Firm instance and assign owner & staff automatically
+        const firm = new Firm({
+            name: req.body.name,
+            address: req.body.address,
+            email: req.body.email, // firm's own email
+            phone: req.body.phone,
+            owner: user._id, // logged-in user becomes owner
+            staff: [user._id], // also added to staff list
+        });
+
+        // 3️⃣ If subscription plan is provided, attach it
         if (req.body.subscriptionPlan) {
             const plan = await SubscriptionPlan.findById(
                 req.body.subscriptionPlan,
             );
-            if (!plan)
+            if (!plan) {
                 return res
                     .status(400)
                     .json({ error: "Invalid subscription plan selected" });
+            }
 
             firm.subscription = {
                 plan: plan._id,
@@ -27,22 +45,29 @@ exports.createFirm = async (req, res) => {
             };
         }
 
-        const saved = await firm.save();
+        // 4️⃣ Save the firm
+        const savedFirm = await firm.save();
 
-        const user = await User.findById(req.userId);
+        // 5️⃣ Link the firm to the user record
+        user.firm = savedFirm._id;
+        await user.save();
+
+        // 6️⃣ Audit log
         await logAudit({
             user,
             action: "CREATE_FIRM",
             target: "Firm",
-            description: `Firm "${saved.name}" was created by ${user.username}`,
-            metadata: { firmId: saved._id },
+            description: `Firm "${savedFirm.name}" was created by ${user.username}`,
+            metadata: { firmId: savedFirm._id },
         });
 
+        // 7️⃣ Send response
         res.status(201).json({
             message: "Firm created successfully",
-            firm: saved,
+            firm: savedFirm,
         });
     } catch (err) {
+        console.error(err);
         res.status(400).json({ error: err.message });
     }
 };
@@ -181,5 +206,32 @@ exports.getFirmStaffCount = async (req, res) => {
         res.json({ count });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getFirmStaff = async (req, res) => {
+    console.log("Fetching staff for firm:", req.userId);
+    try {
+        const user = await User.findById(req.userId);
+
+        const firmId = user.firm;
+        if (!firmId) {
+            return res
+                .status(404)
+                .json({ message: "User does not belong to any firm." });
+        }
+
+        const staff = await User.find({ firm: firmId, isDeleted: false });
+
+        if (!staff.length) {
+            return res
+                .status(404)
+                .json({ message: "No staff found for this firm." });
+        }
+
+        res.json(staff);
+    } catch (error) {
+        console.error("Error fetching firm staff:", error);
+        res.status(500).json({ message: "Server error while fetching staff." });
     }
 };

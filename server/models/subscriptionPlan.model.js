@@ -11,6 +11,8 @@ const subscriptionPlanSchema = new Schema({
             value: Schema.Types.Mixed, // can be number or boolean
         }
     ],
+    stripeId: { type: String, required: true }, // Stripe price ID
+    createdAt: { type: Date, default: Date.now },
     isActive: { type: Boolean, default: true },
 });
 

@@ -47,6 +47,7 @@ import {
 } from "@components/ui/dialog";
 
 import { getAllCases, deleteCase, getUsers } from "@services/case-service";
+import {getFirmStaff} from "@services/firm-service";
 import CaseForm from "@components/Case-Form";
 import { useNavigate } from "react-router-dom";
 
@@ -76,7 +77,7 @@ export function CaseManagement() {
 
     const fetchUsers = async () => {
         try {
-            const res = await getUsers();
+            const res = await getFirmStaff();
             // console.log(res.data);
             const List1 = [];
             const List2 = [];
