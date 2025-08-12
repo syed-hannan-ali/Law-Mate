@@ -23,36 +23,6 @@ import { toast } from "sonner";
 
 import axios from "@config/axios";
 
-// Mock user data based on your Mongoose schema
-const mockUser = {
-    _id: "507f1f77bcf86cd799439011",
-    username: "john_doe",
-    email: "john.doe@lawfirm.com",
-    firm: {
-        _id: "507f1f77bcf86cd799439012",
-        name: "Smith & Associates Law Firm",
-    },
-    role: "lawyer",
-    contactInfo: {
-        phone: "+1 (555) 123-4567",
-        address: "123 Legal Street, Law City, LC 12345",
-    },
-    permissions: ["view_cases", "edit_documents", "manage_clients"],
-    isActive: true,
-    isDeleted: false,
-    lastLoginAt: new Date("2024-01-15T10:30:00Z"),
-    createdBy: {
-        _id: "507f1f77bcf86cd799439013",
-        username: "admin_user",
-    },
-    updatedBy: {
-        _id: "507f1f77bcf86cd799439014",
-        username: "hr_manager",
-    },
-    createdAt: new Date("2023-06-15T09:00:00Z"),
-    updatedAt: new Date("2024-01-10T14:20:00Z"),
-};
-
 const getRoleColor = (role) => {
     const colors = {
         lawyer: "bg-blue-100 text-blue-800 border-blue-200",

@@ -1,6 +1,4 @@
-// "use client"
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Upload,
     Search,
@@ -38,80 +36,162 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@components/ui/select";
-
-const documents = [
-    {
-        id: 1,
-        name: "Contract_Agreement_v3.pdf",
-        type: "PDF",
-        size: "2.4 MB",
-        uploadedBy: "Sarah Wilson",
-        uploadDate: "2024-01-15",
-        case: "CASE-001",
-        firm: "Wilson Law Group",
-        category: "Contract",
-    },
-    {
-        id: 2,
-        name: "Evidence_Photos.zip",
-        type: "ZIP",
-        size: "15.7 MB",
-        uploadedBy: "John Davis",
-        uploadDate: "2024-01-14",
-        case: "CASE-002",
-        firm: "Davis & Associates",
-        category: "Evidence",
-    },
-    {
-        id: 3,
-        name: "Client_Statement.docx",
-        type: "DOCX",
-        size: "156 KB",
-        uploadedBy: "Emily Brown",
-        uploadDate: "2024-01-13",
-        case: "CASE-003",
-        firm: "Brown Legal",
-        category: "Statement",
-    },
-    {
-        id: 4,
-        name: "Legal_Brief_Final.pdf",
-        type: "PDF",
-        size: "892 KB",
-        uploadedBy: "Michael Johnson",
-        uploadDate: "2024-01-12",
-        case: "CASE-004",
-        firm: "Johnson & Partners",
-        category: "Brief",
-    },
-];
-
-const typeColors = {
-    PDF: "default",
-    DOCX: "secondary",
-    ZIP: "outline",
-    JPG: "secondary",
-    PNG: "secondary",
-};
+import axios from "@config/axios";
+import { toast } from "sonner";
 
 export function DocumentManagement() {
+    // Sample data matching your backend structure
+    const [documents, setDocuments] = useState([]);
+
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("all");
-    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [dropdownOpen, setDropdownOpen] = useState(null);
 
+    useEffect(() => {
+        fetchDocuments();
+    }, []);
+
+    // Fetch documents from the backend (mocked for this example)
+    const fetchDocuments = async () => {
+        try {
+            const response = await axios.get("/documents");
+            setDocuments(response.data);
+        } catch (error) {
+            console.error("Error fetching documents:", error);
+            toast.error("Failed to load documents. Please try again later.");
+        }
+    };
+
+    // Helper function to get file extension from mimeType or originalName
+    const getFileType = (doc) => {
+        if (doc.mimeType) {
+            const mimeMap = {
+                "application/pdf": "PDF",
+                "application/zip": "ZIP",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                    "DOCX",
+                "application/msword": "DOC",
+                "image/png": "PNG",
+                "image/jpeg": "JPG",
+                "image/jpg": "JPG",
+            };
+            return (
+                mimeMap[doc.mimeType] ||
+                doc.mimeType.split("/")[1].toUpperCase()
+            );
+        }
+
+        const extension = doc.originalName.split(".").pop().toUpperCase();
+        return extension || "FILE";
+    };
+
+    // Helper function to format file size
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    };
+
+    // Helper function to format date
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        });
+    };
+
+    // Helper function to get badge color for file type
+    const getTypeColor = (type) => {
+        const colorMap = {
+            PDF: "red",
+            DOCX: "blue",
+            DOC: "blue",
+            ZIP: "yellow",
+            PNG: "green",
+            JPG: "sky",
+            JPEG: "sky",
+        };
+        return colorMap[type] || "secondary";
+    };
+
+    // Filter documents based on search and type
     const filteredDocuments = documents.filter((doc) => {
         const matchesSearch =
-            doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doc.case.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesType =
-            typeFilter === "all" || doc.type.toLowerCase() === typeFilter;
-        const matchesCategory =
-            categoryFilter === "all" ||
-            doc.category.toLowerCase() === categoryFilter;
+            doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doc.originalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doc.uploadedBy.email
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            (doc.case?.title &&
+                doc.case.title
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()));
 
-        return matchesSearch && matchesType && matchesCategory;
+        const docType = getFileType(doc).toLowerCase();
+        const matchesType = typeFilter === "all" || docType === typeFilter;
+
+        return matchesSearch && matchesType && !doc.isDeleted;
     });
+
+    // Get unique file types for filter dropdown
+    const uniqueTypes = [...new Set(documents.map((doc) => getFileType(doc)))];
+
+    // Calculate statistics
+    const totalDocuments = documents.filter((doc) => !doc.isDeleted).length;
+    const totalStorage = documents
+        .filter((doc) => !doc.isDeleted)
+        .reduce((sum, doc) => sum + doc.sizeInBytes, 0);
+
+    // Documents uploaded today (for demo, we'll use recent documents)
+    const today = new Date();
+    const todayStart = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+    );
+    const documentsToday = documents.filter(
+        (doc) => !doc.isDeleted && new Date(doc.createdAt) >= todayStart,
+    ).length;
+
+    const handleDropdownToggle = (docId) => {
+        setDropdownOpen(dropdownOpen === docId ? null : docId);
+    };
+
+    const handleViewDocument = (doc) => {
+        window.open(doc.fileUrl, "_blank");
+        setDropdownOpen(null);
+    };
+
+    const handleDownloadDocument = (doc) => {
+        const link = document.createElement("a");
+        link.href = doc.fileUrl;
+        link.download = doc.originalName;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setDropdownOpen(null);
+    };
+
+    const handleDeleteDocument = (docId) => {
+        // In a real app, you would make an API call here
+        console.log("Delete document:", docId);
+        setDropdownOpen(null);
+    };
+
+    if (documents == null) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-muted-foreground">
+                    Loading documents...
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -130,6 +210,7 @@ export function DocumentManagement() {
                 </Button>
             </div>
 
+            {/* Statistics Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -139,12 +220,15 @@ export function DocumentManagement() {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">23,456</div>
+                        <div className="text-2xl font-bold">
+                            {totalDocuments.toLocaleString()}
+                        </div>
                         <p className="text-xs text-muted-foreground">
-                            +18% from last month
+                            Active documents in system
                         </p>
                     </CardContent>
                 </Card>
+
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -153,12 +237,15 @@ export function DocumentManagement() {
                         <FolderOpen className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">847 GB</div>
+                        <div className="text-2xl font-bold">
+                            {formatFileSize(totalStorage)}
+                        </div>
                         <p className="text-xs text-muted-foreground">
-                            of 1 TB limit
+                            Total file storage
                         </p>
                     </CardContent>
                 </Card>
+
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -167,28 +254,42 @@ export function DocumentManagement() {
                         <Upload className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">127</div>
+                        <div className="text-2xl font-bold">
+                            {documentsToday}
+                        </div>
                         <p className="text-xs text-muted-foreground">
-                            New documents
+                            New documents today
                         </p>
                     </CardContent>
                 </Card>
+
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
-                            Downloads
+                            Total Cases
                         </CardTitle>
-                        <Download className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,892</div>
+                        <div className="text-2xl font-bold">
+                            {
+                                [
+                                    ...new Set(
+                                        documents
+                                            .map((doc) => doc.case?._id)
+                                            .filter(Boolean),
+                                    ),
+                                ].length
+                            }
+                        </div>
                         <p className="text-xs text-muted-foreground">
-                            This week
+                            Active cases with documents
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
+            {/* Documents Table */}
             <Card>
                 <CardHeader>
                     <CardTitle>Documents</CardTitle>
@@ -211,32 +312,14 @@ export function DocumentManagement() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="pdf">PDF</SelectItem>
-                                <SelectItem value="docx">DOCX</SelectItem>
-                                <SelectItem value="zip">ZIP</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            value={categoryFilter}
-                            onValueChange={setCategoryFilter}
-                        >
-                            <SelectTrigger className="w-[140px]">
-                                <SelectValue placeholder="Category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">
-                                    All Categories
-                                </SelectItem>
-                                <SelectItem value="contract">
-                                    Contract
-                                </SelectItem>
-                                <SelectItem value="evidence">
-                                    Evidence
-                                </SelectItem>
-                                <SelectItem value="statement">
-                                    Statement
-                                </SelectItem>
-                                <SelectItem value="brief">Brief</SelectItem>
+                                {uniqueTypes.map((type) => (
+                                    <SelectItem
+                                        key={type}
+                                        value={type.toLowerCase()}
+                                    >
+                                        {type}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -257,76 +340,120 @@ export function DocumentManagement() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredDocuments.map((doc) => (
-                                <TableRow key={doc.id}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center space-x-2">
-                                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            {filteredDocuments.map((doc) => {
+                                const fileType = getFileType(doc);
+                                return (
+                                    <TableRow key={doc._id}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center space-x-2">
+                                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                                <div>
+                                                    <div className="font-medium">
+                                                        {doc.title}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {doc.originalName}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={getTypeColor(fileType)}
+                                            >
+                                                {fileType}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatFileSize(doc.sizeInBytes)}
+                                        </TableCell>
+                                        <TableCell>
                                             <div>
                                                 <div className="font-medium">
-                                                    {doc.name}
+                                                    {doc.case?.title ||
+                                                        "No Case"}
                                                 </div>
                                                 <div className="text-sm text-muted-foreground">
-                                                    {doc.category}
+                                                    {doc.case?._id}
                                                 </div>
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={typeColors[doc.type]}>
-                                            {doc.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{doc.size}</TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <div className="font-medium">
-                                                {doc.case}
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {doc.firm}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{doc.uploadedBy}</TableCell>
-                                    <TableCell>{doc.uploadDate}</TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-8 w-8 p-0"
-                                                >
-                                                    <span className="sr-only">
-                                                        Open menu
-                                                    </span>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>
-                                                    Actions
-                                                </DropdownMenuLabel>
-                                                <DropdownMenuItem>
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    View
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    Download
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem className="text-red-600">
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                        <TableCell>
+                                            {doc.uploadedBy.email}
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatDate(doc.createdAt)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="h-8 w-8 p-0"
+                                                    >
+                                                        <span className="sr-only">
+                                                            Open menu
+                                                        </span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>
+                                                        Actions
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            handleViewDocument(
+                                                                doc,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        View
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            handleDownloadDocument(
+                                                                doc,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Download className="mr-2 h-4 w-4" />
+                                                        Download
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="text-destructive"
+                                                        onClick={() =>
+                                                            handleDeleteDocument(
+                                                                doc._id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
+                    {filteredDocuments.length === 0 && (
+                        <div className="text-center py-12">
+                            <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h3 className="mt-2 text-sm font-medium">
+                                No documents found
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {searchTerm || typeFilter !== "all"
+                                    ? "Try adjusting your search criteria."
+                                    : "Get started by uploading your first document."}
+                            </p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
