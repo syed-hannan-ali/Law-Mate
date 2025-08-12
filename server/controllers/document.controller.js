@@ -58,7 +58,15 @@ exports.createDocument = async (req, res) => {
 
 exports.getAllDocuments = async (req, res) => {
     try {
-        const documents = await Document.find({ isDeleted: false })
+        const userId = req.userId;
+        const cases = await Case.find({ assignedStaff: userId });
+        const caseIds = cases.map((caseDoc) => caseDoc._id);
+
+
+        const documents = await Document.find({
+            isDeleted: false,
+            case: { $in: caseIds },
+        })
             .populate("case uploadedBy", "title name email")
             .sort({ createdAt: -1 });
         res.json(documents);
@@ -113,7 +121,7 @@ exports.updateDocument = async (req, res) => {
             },
         });
 
-        res.json(updated);
+        res.status(200).json(updated);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }

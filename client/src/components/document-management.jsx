@@ -177,9 +177,21 @@ export function DocumentManagement() {
         setDropdownOpen(null);
     };
 
-    const handleDeleteDocument = (docId) => {
+    const handleDeleteDocument = async (docId) => {
         // In a real app, you would make an API call here
-        console.log("Delete document:", docId);
+        try {
+            const response = await axios.delete(`/documents/${docId}`);
+            console.log("Document deleted:", response.status);
+            if (response.status == 200) {
+                toast.success("Document deleted successfully.");
+                setDocuments((prevDocs) =>
+                    prevDocs.filter((doc) => doc._id !== docId),
+                );
+            }
+        } catch (error) {
+            console.error("Error deleting document:", error);
+            toast.error("Failed to delete document. Please try again later.");
+        }
         setDropdownOpen(null);
     };
 
