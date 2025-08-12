@@ -12,6 +12,7 @@ import { TaskManagement } from "@components/task-management";
 import { AdminLayout } from "@components/admin-layout";
 import { CaseDetails } from "@components/CaseDetail";
 import { SubscriptionManagement } from "@components/subscription-management";
+import UserProfile from "@components/UserProfile";
 
 export default function AdminDashboard() {
     return (
@@ -19,6 +20,8 @@ export default function AdminDashboard() {
             <Route path="/" element={<AdminLayout />}>
                 <Route index element={<DashboardOverview />} />
                 <Route path="users" element={<UserManagement />} />
+                <Route path="/profile" element={<UserProfile />} />
+
                 <Route path="firms" element={<FirmManagement />} />
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />

@@ -19,6 +19,7 @@ import ChatPage from "@components/chat-interface";
 import SubscriptionPage from "@components/SubscriptionPage";
 import { Toaster } from "sonner";
 import PaymentSuccess from "@components/paymentSuccess";
+import { User } from "lucide-react";
 
 export default function App() {
     const initializeAuth = useAuthStore((state) => state.initializeAuth);

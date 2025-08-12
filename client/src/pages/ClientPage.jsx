@@ -7,6 +7,8 @@ import { TaskManagement } from "@components/task-management";
 import { StaffLayout } from "@components/staff-layout";
 import { CaseDetails } from "@components/CaseDetail";
 import { ClientLayout } from "@components/client-layout";
+import UserProfile from "@components/UserProfile";
+
 
 export default function lawyerParalegalPage() {
     return (
@@ -14,6 +16,8 @@ export default function lawyerParalegalPage() {
             <Route path="/" element={<ClientLayout />}>
                 <Route index element={<DashboardOverview />} />
                 <Route path="cases" element={<CaseManagement />} />
+                                    <Route path="/profile" element={<UserProfile />} />
+                
                 <Route path="/cases/:id" element={<CaseDetails />} />
                 <Route
                     path="appointments"

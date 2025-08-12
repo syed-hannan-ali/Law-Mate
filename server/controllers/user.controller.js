@@ -116,9 +116,27 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const getUserProfile = async (req, res) => {
+    const userId = req.userId; // Assuming userId is set by the auth middleware
+    console.log(`Fetching profile for user ID: ${userId}`);
+    try {
+        const user = await User.findById(userId)
+            .select("-hashedPassword") // Exclude sensitive fields
+            .populate("firm", "name");
+        if (!user || user.isDeleted) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: "Server error while fetching user profile." });
+    }
+};
+
 module.exports = {
     getAllUsers,
     updateUser,
     getUserById,
     deleteUser,
+    getUserProfile,
 };

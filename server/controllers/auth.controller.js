@@ -68,7 +68,9 @@ exports.loginUser = async (req, res) => {
                 .status(400)
                 .json({ error: "Email and password are required." });
         }
-        const user = await User.findOne({ email }).select("+hashedPassword").populate("firm");
+        const user = await User.findOne({ email })
+            .select("+hashedPassword")
+            .populate("firm");
         if (!user) {
             return res.status(401).json({ error: "User not Found" });
         }
@@ -105,6 +107,10 @@ exports.loginUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
+
+
+        
+
         let hasActiveSubscription = user.firm?.subscription?.isActive || false;
 
         console.log("Firm has active subscription:", hasActiveSubscription);
@@ -120,7 +126,6 @@ exports.loginUser = async (req, res) => {
                 hasActiveSubscription,
             },
         });
-        
     } catch (error) {
         res.status(500).json({ message: "Login failed", error: error });
     }
