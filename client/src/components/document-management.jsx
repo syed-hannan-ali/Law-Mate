@@ -9,6 +9,15 @@ import {
     MoreHorizontal,
     FolderOpen,
 } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogTrigger,
+} from "@components/ui/dialog";
+import { Label } from "@components/ui/label";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
@@ -42,6 +51,13 @@ import { toast } from "sonner";
 export function DocumentManagement() {
     // Sample data matching your backend structure
     const [documents, setDocuments] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [cases, setCases] = useState([]);
+    const [formData, setFormData] = useState({
+        title: "",
+        file: null,
+        caseId: "",
+    });
 
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("all");
@@ -49,7 +65,17 @@ export function DocumentManagement() {
 
     useEffect(() => {
         fetchDocuments();
+        fetchCases();
     }, []);
+
+    const fetchCases = async () => {
+        try {
+            const res = await axios.get("/cases"); // Adjust API route
+            setCases(res.data);
+        } catch (err) {
+            toast.error("Failed to load cases");
+        }
+    };
 
     // Fetch documents from the backend (mocked for this example)
     const fetchDocuments = async () => {
@@ -83,6 +109,10 @@ export function DocumentManagement() {
 
         const extension = doc.originalName.split(".").pop().toUpperCase();
         return extension || "FILE";
+    };
+
+    const handleFileChange = (e) => {
+        setFormData({ ...formData, file: e.target.files[0] });
     };
 
     // Helper function to format file size
@@ -166,6 +196,30 @@ export function DocumentManagement() {
         setDropdownOpen(null);
     };
 
+    const handleSubmit = async () => {
+        if (!formData.title || !formData.file || !formData.caseId) {
+            toast.error("Please fill all fields");
+            return;
+        }
+
+        const data = new FormData();
+        data.append("title", formData.title);
+        data.append("file", formData.file);
+        data.append("caseId", formData.caseId);
+
+        try {
+            await axios.post("/documents", data, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            toast.success("Document uploaded successfully");
+            fetchDocuments();
+            setOpen(false);
+            setFormData({ title: "", file: null, caseId: "" });
+        } catch (err) {
+            toast.error("Failed to upload document");
+        }
+    };
+
     const handleDownloadDocument = (doc) => {
         const link = document.createElement("a");
         link.href = doc.fileUrl;
@@ -216,10 +270,74 @@ export function DocumentManagement() {
                         Manage all legal documents across the platform
                     </p>
                 </div>
-                <Button>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Document
-                </Button>
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                        <Button>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Document
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Upload Document</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Title</Label>
+                                <Input
+                                    value={formData.title}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            title: e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+
+                            <div>
+                                <Label>File</Label>
+                                <Input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    onChange={handleFileChange}
+                                />
+                            </div>
+
+                            <div>
+                                <Label>Case</Label>
+                                <Select
+                                    value={formData.caseId}
+                                    onValueChange={(value) =>
+                                        setFormData({
+                                            ...formData,
+                                            caseId: value,
+                                        })
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select case" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {cases.map((c) => (
+                                            <SelectItem
+                                                key={c._id}
+                                                value={c._id}
+                                            >
+                                                {c.title}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button onClick={handleSubmit}>Submit</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* Statistics Cards */}
