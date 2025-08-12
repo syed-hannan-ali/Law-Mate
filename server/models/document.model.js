@@ -8,9 +8,13 @@ const DocumentSchema = new mongoose.Schema(
             trim: true,
         },
 
+        fileKey: {
+            type: String,
+            required: true, // S3 key for deletion / retrieval
+        },
         fileUrl: {
             type: String,
-            required: true, // Full path or cloud storage URL
+            required: true, // Public URL for display/download
         },
 
         originalName: {
@@ -21,12 +25,6 @@ const DocumentSchema = new mongoose.Schema(
             type: String, // e.g. "application/pdf", "image/png"
         },
 
-        fileType: {
-            type: String,
-            enum: ["pdf", "image", "text", "word", "other"],
-            default: "other",
-        },
-
         sizeInBytes: {
             type: Number,
         },
@@ -34,7 +32,7 @@ const DocumentSchema = new mongoose.Schema(
         storage: {
             type: String,
             enum: ["local", "s3", "gcs", "azure"],
-            default: "local",
+            default: "s3",
         },
 
         case: {
@@ -52,14 +50,6 @@ const DocumentSchema = new mongoose.Schema(
         tags: {
             type: [String],
             default: [],
-        },
-
-        aiSummary: {
-            type: String,
-        },
-
-        extractedEntities: {
-            type: [String], // For named entities or key info via NLP
         },
 
         version: {

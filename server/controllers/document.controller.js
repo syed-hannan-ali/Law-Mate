@@ -9,16 +9,26 @@ exports.createDocument = async (req, res) => {
 
         const { caseId, title, ...rest } = req.body;
 
-        // Optionally: validate that caseId exists
         const relatedCase = await Case.findById(caseId);
         if (!relatedCase) {
             return res.status(404).json({ error: "Related case not found" });
         }
 
+        // File details from multer-s3
+        const fileUrl = req.file.location; // S3 public URL
+        const fileKey = req.file.key; // S3 object key
+        const mimeType = req.file.mimetype; // File MIME type
+        const size = req.file.size; // Size in bytes
+
         const doc = new Document({
             title,
             case: caseId,
             uploadedBy: req.userId,
+            mimeType,
+            sizeInBytes: size,
+            originalName: req.file.originalname,
+            fileUrl,
+            fileKey,
             ...rest,
         });
 
