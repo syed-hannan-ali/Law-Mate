@@ -66,14 +66,14 @@ const getRoleColor = (role) => {
 function formatDate(dateString) {
     console.log("Formatting date:", dateString); // Debug
     if (!dateString) return "N/A";
-    
+
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Invalid Date";
-    
+
     return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
-        day: "numeric"
+        day: "numeric",
     });
 }
 
@@ -112,7 +112,7 @@ export default function UserProfile() {
             });
         } catch (error) {
             console.error("Error fetching user data:", error);
-            toast.error("❌ Failed to load user profile. Please try again.");
+            toast.error("Failed to load user profile. Please try again.");
         }
     };
 
@@ -223,10 +223,6 @@ export default function UserProfile() {
                                     </Button>
                                 </div>
                             )}
-                            <Button variant="outline" size="sm">
-                                <Settings className="w-4 h-4 mr-2" />
-                                Settings
-                            </Button>
                         </div>
                     </div>
                 </div>
@@ -263,7 +259,8 @@ export default function UserProfile() {
                                             </div>
                                         ) : (
                                             <CardTitle className="text-2xl">
-                                                {user?.username || "Unknown User"}
+                                                {user?.username ||
+                                                    "Unknown User"}
                                             </CardTitle>
                                         )}
                                         <div className="flex items-center gap-2 mt-2">
@@ -316,9 +313,10 @@ export default function UserProfile() {
                                                 </div>
                                             </div>
                                         )}
-                                        
+
                                         {/* Phone - Show if exists or if editing */}
-                                        {(user?.contactInfo?.phone || isEditing) && (
+                                        {(user?.contactInfo?.phone ||
+                                            isEditing) && (
                                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                                                 <Phone className="w-5 h-5 text-gray-500" />
                                                 <div className="flex-1">
@@ -327,11 +325,15 @@ export default function UserProfile() {
                                                     </p>
                                                     {isEditing ? (
                                                         <Input
-                                                            value={editForm.phone}
+                                                            value={
+                                                                editForm.phone
+                                                            }
                                                             onChange={(e) =>
                                                                 setEditForm({
                                                                     ...editForm,
-                                                                    phone: e.target.value,
+                                                                    phone: e
+                                                                        .target
+                                                                        .value,
                                                                 })
                                                             }
                                                             className="mt-1"
@@ -339,16 +341,19 @@ export default function UserProfile() {
                                                         />
                                                     ) : (
                                                         <p className="font-medium">
-                                                            {user?.contactInfo?.phone || "Not provided"}
+                                                            {user?.contactInfo
+                                                                ?.phone ||
+                                                                "Not provided"}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     {/* Address - Show if exists or if editing */}
-                                    {(user?.contactInfo?.address || isEditing) && (
+                                    {(user?.contactInfo?.address ||
+                                        isEditing) && (
                                         <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg mt-4">
                                             <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
                                             <div className="flex-1">
@@ -361,7 +366,9 @@ export default function UserProfile() {
                                                         onChange={(e) =>
                                                             setEditForm({
                                                                 ...editForm,
-                                                                address: e.target.value,
+                                                                address:
+                                                                    e.target
+                                                                        .value,
                                                             })
                                                         }
                                                         className="mt-1"
@@ -369,7 +376,9 @@ export default function UserProfile() {
                                                     />
                                                 ) : (
                                                     <p className="font-medium">
-                                                        {user?.contactInfo?.address || "Not provided"}
+                                                        {user?.contactInfo
+                                                            ?.address ||
+                                                            "Not provided"}
                                                     </p>
                                                 )}
                                             </div>
@@ -399,33 +408,37 @@ export default function UserProfile() {
                                 )}
 
                                 {/* Permissions */}
-                                {user?.permissions && user.permissions.length > 0 && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                                            <Shield className="w-5 h-5" />
-                                            Permissions
-                                        </h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {user.permissions.map(
-                                                (permission, index) => (
-                                                    <Badge
-                                                        key={index}
-                                                        variant="outline"
-                                                        className="text-xs"
-                                                    >
-                                                        {permission
-                                                            .replace(/_/g, " ")
-                                                            .replace(
-                                                                /\b\w/g,
-                                                                (l) =>
-                                                                    l.toUpperCase(),
-                                                            )}
-                                                    </Badge>
-                                                ),
-                                            )}
+                                {user?.permissions &&
+                                    user.permissions.length > 0 && (
+                                        <div>
+                                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                                                <Shield className="w-5 h-5" />
+                                                Permissions
+                                            </h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {user.permissions.map(
+                                                    (permission, index) => (
+                                                        <Badge
+                                                            key={index}
+                                                            variant="outline"
+                                                            className="text-xs"
+                                                        >
+                                                            {permission
+                                                                .replace(
+                                                                    /_/g,
+                                                                    " ",
+                                                                )
+                                                                .replace(
+                                                                    /\b\w/g,
+                                                                    (l) =>
+                                                                        l.toUpperCase(),
+                                                                )}
+                                                        </Badge>
+                                                    ),
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
                             </CardContent>
                         </Card>
                     </div>
