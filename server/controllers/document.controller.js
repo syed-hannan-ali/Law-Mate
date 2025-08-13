@@ -2,6 +2,8 @@ const Document = require("@models/document.model");
 const logAudit = require("@middleware/auditLog.middleware.js");
 const Case = require("@models/case.model");
 const User = require("@models/user.model.js");
+const axios = require("axios");
+const FormData = require("form-data");
 
 exports.createDocument = async (req, res) => {
     try {
@@ -61,7 +63,6 @@ exports.getAllDocuments = async (req, res) => {
         const userId = req.userId;
         const cases = await Case.find({ assignedStaff: userId });
         const caseIds = cases.map((caseDoc) => caseDoc._id);
-
 
         const documents = await Document.find({
             isDeleted: false,
@@ -158,3 +159,90 @@ exports.deleteDocument = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.requestSignature = async (req, res) => {
+    try {
+        const { documentId } = req.params;
+        const { signers, subject, message } = req.body;
+
+        console.log("Requesting signature for document:", documentId);
+        console.log("Signers:", signers);
+        console.log("Subject:", subject);
+        console.log("Message:", message);
+
+        const doc = await Document.findById(documentId);
+        if (!doc) {
+            return res.status(404).json({ error: "Document not found" });
+        }
+
+        console.log("Document found:", doc);
+
+        // Prepare Dropbox Sign API request
+
+        const form = new FormData();
+
+        form.append("title", doc.title);
+        form.append("subject", subject || `Please sign: ${doc.title}`);
+        form.append(
+            "message",
+            message || "Please review and sign this document.",
+        );
+
+        signers.forEach((s, i) => {
+            form.append(`signers[${i}][email_address]`, s.email);
+            form.append(`signers[${i}][name]`, s.name);
+            form.append(`signers[${i}][order]`, i);
+        });
+
+        form.append("file_url[]", doc.fileUrl);
+
+        // Add metadata
+        form.append("metadata[documentId]", doc._id.toString());
+        form.append("metadata[caseId]", doc.case.toString());
+
+        form.append("signing_options[draw]", "0");
+        form.append("signing_options[type]", "1");
+        form.append("signing_options[upload]", "0");
+        form.append("signing_options[phone]", "0");
+        form.append("signing_options[default_type]", "type");
+
+        form.append("test_mode", "1"); // must be integer
+
+        console.log("Form data prepared for Dropbox Sign API:", form);
+
+        const DROPBOXSIGN_API_KEY = process.env.DROPBOX_API_KEY;
+
+        // Send signature request
+        // 3. Send request to Dropbox Sign API
+        const response = await axios.post(
+            "https://api.hellosign.com/v3/signature_request/send",
+            form,
+            {
+                auth: { username: DROPBOXSIGN_API_KEY, password: "" },
+            },
+        );
+
+        const result = response.data;
+
+        console.log("Dropbox Sign response:", result);
+
+        // 4. Update document in DB
+        doc.esignProvider = "dropboxsign";
+        doc.esignRequestId = result.signature_request.signature_request_id;
+        doc.esignStatus = "pending";
+        await doc.save();
+
+        console.log("Document updated with e-signature info:", doc);
+
+        res.status(200).json({
+            message: "E-signature request sent successfully",
+            requestId: result.signature_request.signature_request_id,
+            data: result,
+        });
+    } catch (error) {
+        console.error("Dropbox Sign Error:", error.body || error);
+        res.status(500).json({ success: false, error: error.body || error });
+    }
+};
+
+

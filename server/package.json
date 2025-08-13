@@ -14,6 +14,8 @@
     "description": "",
     "dependencies": {
         "@aws-sdk/client-s3": "^3.864.0",
+        "@dropbox/sign": "^1.10.0",
+        "axios": "^1.11.0",
         "bcrypt": "^6.0.0",
         "body-parser": "^2.2.0",
         "cookie-parser": "^1.4.7",
@@ -29,6 +31,7 @@
         "mongoose": "^8.16.4",
         "multer": "^2.0.2",
         "multer-s3": "^3.0.1",
+        "node-cron": "^4.2.1",
         "passport": "^0.7.0",
         "passport-google-oauth2": "^0.2.0",
         "stripe": "^18.4.0",
@@ -49,6 +52,7 @@
         "@routes": "routes",
         "@utils": "utils",
         "@src": "src",
+        "@services": "services",
         "@middleware": "middleware"
     }
 }

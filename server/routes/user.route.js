@@ -6,7 +6,7 @@ const authorizeRole = require("@middleware/rbac.middleware.js");
 
 console.log(userController.getAllUsers);
 
-router.get("/", verifyToken, userController.getAllUsers);
+router.get("/", userController.getAllUsers);
 router.get(
     "/getProfile",
     verifyToken,

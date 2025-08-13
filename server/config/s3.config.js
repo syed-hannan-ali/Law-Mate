@@ -1,3 +1,5 @@
+// server/config/s3.config.js
+
 const { S3Client } = require("@aws-sdk/client-s3");
 
 console.log("Initializing S3 client with bucket:", process.env.AWS_BUCKET_NAME);

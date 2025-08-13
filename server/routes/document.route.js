@@ -25,9 +25,15 @@ router.post(
     upload.single("file"),
     documentController.createDocument,
 );
+router.post(
+    "/request-signature/:documentId",
+    verifyToken,
+    documentController.requestSignature,
+);
 router.get("/", verifyToken, documentController.getAllDocuments);
 router.get("/:id", verifyToken, documentController.getDocumentById);
 router.put("/:id", verifyToken, documentController.updateDocument);
+// router.post("/:documentId/complete-signature", verifyToken, documentController.completeSignature);
 router.delete("/:id", verifyToken, documentController.deleteDocument);
 
 module.exports = router;

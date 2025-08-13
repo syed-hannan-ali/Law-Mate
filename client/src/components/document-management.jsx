@@ -48,6 +48,14 @@ import {
 import axios from "@config/axios";
 import { toast } from "sonner";
 
+const statusColor = {
+    pending: "yellow",
+    signed: "green",
+    declined: "red",    
+    "not required": "gray",
+    expired: "orange",
+};
+
 export function DocumentManagement() {
     // Sample data matching your backend structure
     const [documents, setDocuments] = useState([]);
@@ -462,6 +470,7 @@ export function DocumentManagement() {
                                 <TableHead>Type</TableHead>
                                 <TableHead>Size</TableHead>
                                 <TableHead>Case</TableHead>
+                                <TableHead>E-Sign</TableHead>
                                 <TableHead>Uploaded By</TableHead>
                                 <TableHead>Upload Date</TableHead>
                                 <TableHead className="text-right">
@@ -507,6 +516,12 @@ export function DocumentManagement() {
                                                     {doc.case?._id}
                                                 </div>
                                             </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {/* i want to add a badge here for E-sign status */}
+                                            <Badge variant={ statusColor[doc.esignStatus]}>
+                                                {doc.esignStatus}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>
                                             {doc.uploadedBy.email}

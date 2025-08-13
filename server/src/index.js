@@ -1,6 +1,7 @@
 require("module-alias/register");
 require("dotenv").config();
 require("@config/auth.config.js");
+require("@services/cron");
 
 const express = require("express");
 const cors = require("cors");
@@ -14,9 +15,9 @@ const rateLimit = require("@middleware/rateLimit.middleware.js");
 const app = express();
 const cookieParser = require("cookie-parser");
 
-
 app.use(cookieParser());
 app.use(express.json());
+app.set("trust proxy", 3);
 app.use(
     cors({
         origin: "http://localhost:5173", // Change to your frontend URL
