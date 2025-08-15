@@ -29,6 +29,7 @@ exports.createAppointment = async (req, res) => {
         attendees: req.body.participants.map((participant) => ({
             email: participant.email,
         })),
+        timezone: req.body.timezone || "Asia/Karachi",
     };
 
     console.log("Event details:", event);
@@ -50,9 +51,9 @@ exports.createAppointment = async (req, res) => {
 exports.getAllAppointments = async (req, res) => {
     console.log("Fetching all appointments");
     try {
-        const appointments = await Appointment.find({ isDeleted: false })
-            .populate("case participants createdBy", "name email")
-            .sort({ date: 1 }); // upcoming first
+        const appointments = await Appointment.find().sort({
+            date: 1,
+        }); // upcoming first
         res.json(appointments);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -62,7 +63,7 @@ exports.getAllAppointments = async (req, res) => {
 exports.getAppointmentById = async (req, res) => {
     try {
         const appointment = await Appointment.findById(req.params.id).populate(
-            "case participants createdBy",
+            "participants createdBy",
             "name email",
         );
         if (!appointment || appointment.isDeleted)
@@ -157,11 +158,11 @@ async function createGoogleMeetEvent(user, eventDetails) {
             description: eventDetails.description, // Optional description
             start: {
                 dateTime: eventDetails.startDateTime, // e.g., "2025-08-16T10:00:00+05:00"
-                timeZone: "Asia/Karachi",
+                timezone: eventDetails.timezone,
             },
             end: {
                 dateTime: eventDetails.endDateTime, // e.g., "2025-08-16T11:00:00+05:00"
-                timeZone: "Asia/Karachi",
+                timezone: eventDetails.timezone,
             },
             attendees: eventDetails.attendees,
             conferenceData: {

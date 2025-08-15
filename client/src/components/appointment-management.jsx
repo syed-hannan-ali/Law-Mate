@@ -1,6 +1,6 @@
 // "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Plus,
     Search,
@@ -11,6 +11,7 @@ import {
     Edit,
     X,
 } from "lucide-react";
+import axiosInstance from "@config/axios";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
@@ -32,45 +33,8 @@ import {
 } from "@components/ui/dropdown-menu";
 import { Badge } from "@components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
-
-const appointments = [
-    {
-        id: 1,
-        title: "Case Review Meeting",
-        client: "Robert Johnson",
-        lawyer: "Sarah Wilson",
-        date: "2024-01-16",
-        time: "10:00 AM",
-        duration: "1 hour",
-        status: "Scheduled",
-        type: "In-Person",
-        location: "Wilson Law Group Office",
-    },
-    {
-        id: 2,
-        title: "Initial Consultation",
-        client: "Mary Smith",
-        lawyer: "John Davis",
-        date: "2024-01-16",
-        time: "2:00 PM",
-        duration: "30 minutes",
-        status: "Confirmed",
-        type: "Video Call",
-        location: "Zoom Meeting",
-    },
-    {
-        id: 3,
-        title: "Contract Signing",
-        client: "TechCorp Inc.",
-        lawyer: "Emily Brown",
-        date: "2024-01-17",
-        time: "9:00 AM",
-        duration: "45 minutes",
-        status: "Pending",
-        type: "In-Person",
-        location: "Brown Legal Office",
-    },
-];
+import { ScheduleAppointmentDialog } from "@components/schedule-appointment-dialog";
+import { toast } from "sonner";
 
 const statusColors = {
     Scheduled: "default",
@@ -82,16 +46,71 @@ const statusColors = {
 
 export function AppointmentManagement() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+
+    // Fetch appointments from backend
+    const fetchAppointments = async () => {
+        try {
+            setLoading(true);
+            const response = await axiosInstance.get('/appointments');
+            setAppointments(response.data);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching appointments:', err);
+            toast.error('Failed to load appointments');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Create new appointment
+    const handleCreateAppointment = async (appointmentData) => {
+        try {
+            const response = await axiosInstance.post('/appointments', appointmentData);
+            toast.success('Appointment created successfully');
+            setAppointments(prev => [...prev, response.data]);
+            console.log('Appointment created successfully:', response.data);
+        } catch (err) {
+            console.error('Error creating appointment:', err);
+            toast.error('Failed to create appointment');
+        }
+    };
+
+    useEffect(() => {
+        fetchAppointments();
+    }, []);
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    };
+
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
 
     const filteredAppointments = appointments.filter(
         (appointment) =>
             appointment.title
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase()) ||
-            appointment.client
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
-            appointment.lawyer.toLowerCase().includes(searchTerm.toLowerCase()),
+            (appointment.participants &&
+                appointment.participants.some(
+                    (p) =>
+                        p.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                        p.email
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()),
+                )),
     );
 
     return (
@@ -106,7 +125,7 @@ export function AppointmentManagement() {
                         platform
                     </p>
                 </div>
-                <Button>
+                <Button onClick={() => setShowScheduleDialog(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Schedule Appointment
                 </Button>
@@ -187,115 +206,170 @@ export function AppointmentManagement() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Appointment</TableHead>
-                                <TableHead>Client</TableHead>
-                                <TableHead>Lawyer</TableHead>
-                                <TableHead>Date & Time</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredAppointments.map((appointment) => (
-                                <TableRow key={appointment.id}>
-                                    <TableCell className="font-medium">
-                                        <div>
-                                            <div className="font-medium">
-                                                {appointment.title}
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {appointment.duration} •{" "}
-                                                {appointment.location}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center space-x-2">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage
-                                                    src="/placeholder.svg?height=32&width=32"
-                                                    alt={appointment.client}
-                                                />
-                                                <AvatarFallback>
-                                                    {appointment.client
-                                                        .split(" ")
-                                                        .map((n) => n[0])
-                                                        .join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span>{appointment.client}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{appointment.lawyer}</TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <div className="font-medium">
-                                                {appointment.date}
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {appointment.time}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">
-                                            {appointment.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                statusColors[appointment.status]
-                                            }
-                                        >
-                                            {appointment.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-8 w-8 p-0"
-                                                >
-                                                    <span className="sr-only">
-                                                        Open menu
-                                                    </span>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>
-                                                    Actions
-                                                </DropdownMenuLabel>
-                                                <DropdownMenuItem>
-                                                    <Edit className="mr-2 h-4 w-4" />
-                                                    Reschedule
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    <User className="mr-2 h-4 w-4" />
-                                                    Assign Lawyer
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem className="text-red-600">
-                                                    <X className="mr-2 h-4 w-4" />
-                                                    Cancel
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
+                    {loading ? (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="text-muted-foreground">
+                                Loading appointments...
+                            </div>
+                        </div>
+                    ) : error ? (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="text-red-500">Error: {error}</div>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Appointment</TableHead>
+                                    <TableHead>Participants</TableHead>
+                                    <TableHead>Date & Time</TableHead>
+                                    <TableHead>Duration</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredAppointments.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={6}
+                                            className="text-center py-8"
+                                        >
+                                            No appointments found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredAppointments.map(
+                                        (appointment, index) => (
+                                            <TableRow
+                                                key={appointment._id || index}
+                                            >
+                                                <TableCell className="font-medium">
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {appointment.title}
+                                                        </div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {
+                                                                appointment.description
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center -space-x-3">
+                                                        {appointment.participants && appointment.participants.length > 0 ? (
+                                                            appointment.participants.map((participant, idx) => (
+                                                                <Avatar
+                                                                    key={idx}
+                                                                    className="h-8 w-8 ring-2 ring-blue"
+                                                                    title={`${participant.name} (${participant.email})`}
+                                                                >
+                                                                    <AvatarImage
+                                                                        src="/placeholder.svg"
+                                                                        alt={participant.name}
+                                                                    />
+                                                                    <AvatarFallback>
+                                                                        {participant.name
+                                                                            ?.split(" ")
+                                                                            .map((n) => n[0])
+                                                                            .join("")
+                                                                            .slice(0, 2)}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-muted-foreground">
+                                                                No participants
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {formatDate(
+                                                                appointment.date,
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {formatTime(
+                                                                appointment.date,
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline">
+                                                        {appointment.duration}{" "}
+                                                        min
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        variant={
+                                                            statusColors[
+                                                                appointment.status ||
+                                                                    "Scheduled"
+                                                            ]
+                                                        }
+                                                    >
+                                                        {appointment.status ||
+                                                            "Scheduled"}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger
+                                                            asChild
+                                                        >
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="h-8 w-8 p-0"
+                                                            >
+                                                                <span className="sr-only">
+                                                                    Open menu
+                                                                </span>
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>
+                                                                Actions
+                                                            </DropdownMenuLabel>
+                                                            <DropdownMenuItem>
+                                                                <Edit className="mr-2 h-4 w-4" />
+                                                                Edit
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem>
+                                                                <User className="mr-2 h-4 w-4" />
+                                                                View Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem className="text-red-600">
+                                                                <X className="mr-2 h-4 w-4" />
+                                                                Cancel
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ),
+                                    )
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
+
+            <ScheduleAppointmentDialog 
+                open={showScheduleDialog}
+                onClose={() => setShowScheduleDialog(false)}
+                onSubmit={handleCreateAppointment}
+            />
         </div>
     );
 }
