@@ -12,6 +12,7 @@ import { TaskManagement } from "@components/task-management";
 import { AdminLayout } from "@components/admin-layout";
 import { CaseDetails } from "@components/CaseDetail";
 import { SubscriptionManagement } from "@components/subscription-management";
+import ChatPage from "@components/chat-interface";
 import UserProfile from "@components/UserProfile";
 
 export default function AdminDashboard() {
@@ -25,6 +26,8 @@ export default function AdminDashboard() {
                 <Route path="firms" element={<FirmManagement />} />
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />
+                <Route path="/chat" element={<ChatPage />} />
+
                 <Route
                     path="appointments"
                     element={<AppointmentManagement />}

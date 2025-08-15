@@ -6,6 +6,7 @@ import { DocumentManagement } from "@components/document-management";
 import { TaskManagement } from "@components/task-management";
 import { StaffLayout } from "@components/staff-layout";
 import { CaseDetails } from "@components/CaseDetail";
+import ChatPage from "@components/chat-interface";
 import UserProfile from "@components/UserProfile";
 
 export default function lawyerParalegalPage() {
@@ -15,6 +16,7 @@ export default function lawyerParalegalPage() {
                 <Route index element={<DashboardOverview />} />
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/profile" element={<UserProfile />} />
+                <Route path="/chat" element={<ChatPage />} />
 
                 <Route path="/cases/:id" element={<CaseDetails />} />
                 <Route

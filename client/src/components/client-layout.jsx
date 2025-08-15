@@ -4,6 +4,7 @@ import {
     Settings,
     User,
     LogOut,
+    Bot,
     BarChart3,
     Users,
     Building2,
@@ -214,6 +215,13 @@ export function ClientLayout() {
                                         <User className="mr-2 h-4 w-4" />
                                         <span>Profile</span>
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => navigate("chat")}
+                                    >
+                                        <Bot className="mr-2 h-4 w-4" />
+                                        <span>Chatbot</span>
+                                    </DropdownMenuItem>
+
                                     <DropdownMenuItem>
                                         <Settings className="mr-2 h-4 w-4" />
                                         <span>Settings</span>

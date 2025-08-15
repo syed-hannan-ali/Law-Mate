@@ -48,7 +48,7 @@ export default function App() {
                     <Route path="/admin/*" element={<AdminPage />} />
                     <Route path="/staff/*" element={<LawyerParalegalPage />} />
                     <Route path="/client/*" element={<ClientPage />} />
-                    <Route path="/chat" element={<ChatPage />} />
+                    {/* <Route path="/chat" element={<ChatPage />} /> */}
                 </Routes>
             </Router>
             <Toaster position="top-right" richColors closeButton />

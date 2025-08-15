@@ -10,6 +10,7 @@ import {
     FileText,
     Calendar,
     Shield,
+    Bot,
     BadgeDollarSign,
     FolderOpen,
     Receipt,
@@ -219,6 +220,12 @@ export function AdminLayout() {
                                     >
                                         <User className="mr-2 h-4 w-4" />
                                         <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => navigate("chat")}
+                                    >
+                                        <Bot className="mr-2 h-4 w-4" />
+                                        <span>Chatbot</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
                                         <Settings className="mr-2 h-4 w-4" />

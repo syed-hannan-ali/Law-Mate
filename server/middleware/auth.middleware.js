@@ -16,6 +16,12 @@ function verifyToken(req, res, next) {
         req.userId = decoded.userId;
         req.userRole = decoded.userRole;
 
+        if(!req.userRole)
+        {
+            console.error("No user role found in token");
+            return res.status(403).json({ error: "Access forbidden: No user role found" });
+        }
+
         // console.log("Decoded user ID:", req.userId);
         console.log("Decoded user role:", req.userRole);
 

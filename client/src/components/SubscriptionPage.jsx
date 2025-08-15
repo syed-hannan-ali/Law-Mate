@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getAllPlans } from "@services/subscription-service";
 import { loadStripe } from "@stripe/stripe-js";
-import { useNavigate } from "react-router-dom";
 
 import axios from "@config/axios";
 import Header from "./Header";

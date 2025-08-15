@@ -363,9 +363,6 @@ export default function LegalLandingPage() {
                             case law references in real-time.
                         </p>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
-                            <Button size="lg" asChild>
-                                <a href="/chat">Start Chatting</a>
-                            </Button>
                             <Button variant="outline" size="lg">
                                 <MessageCircle className="mr-2 h-4 w-4" />
                                 Learn More

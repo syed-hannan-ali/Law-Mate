@@ -5,6 +5,7 @@ import {
     User,
     LogOut,
     BarChart3,
+    Bot,
     Users,
     Building2,
     FileText,
@@ -208,10 +209,19 @@ export function StaffLayout() {
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => navigate('profile')}>
+                                    <DropdownMenuItem
+                                        onClick={() => navigate("profile")}
+                                    >
                                         <User className="mr-2 h-4 w-4" />
                                         <span>Profile</span>
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => navigate("chat")}
+                                    >
+                                        <Bot className="mr-2 h-4 w-4" />
+                                        <span>Chatbot</span>
+                                    </DropdownMenuItem>
+
                                     <DropdownMenuItem>
                                         <Settings className="mr-2 h-4 w-4" />
                                         <span>Settings</span>

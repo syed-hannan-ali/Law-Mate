@@ -26,7 +26,6 @@ const navigation = [
     { name: "Features", href: "#features" },
     { name: "About", href: "#about" },
     { name: "Contact", href: "#contact" },
-    { name: "Chat", href: "/chat" },
 ];
 
 export default function Header() {
@@ -120,7 +119,9 @@ export default function Header() {
                                     <User className="mr-2 h-4 w-4" />
                                     <span>Profile</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate('/chat')}>
+                                <DropdownMenuItem
+                                    onClick={() => navigate("/chat")}
+                                >
                                     <MessageCircle className="mr-2 h-4 w-4" />
                                     <span>Chat with AI</span>
                                 </DropdownMenuItem>
@@ -221,8 +222,10 @@ export default function Header() {
                                                 </div>
                                                 <Button
                                                     onClick={() => {
-                                                        navigate('/chat');
-                                                        setMobileMenuOpen(false);
+                                                        navigate("/chat");
+                                                        setMobileMenuOpen(
+                                                            false,
+                                                        );
                                                     }}
                                                     variant="ghost"
                                                     className="w-full justify-start"
