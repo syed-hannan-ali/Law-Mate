@@ -107,10 +107,6 @@ exports.loginUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
-
-
-        
-
         let hasActiveSubscription = user.firm?.subscription?.isActive || false;
 
         console.log("Firm has active subscription:", hasActiveSubscription);
@@ -142,9 +138,13 @@ exports.googleCallback = async (req, res) => {
             username: req.user.displayName,
             email: email,
             hashedPassword: "",
+            googleRefreshToken: req.user.refreshToken,
         });
         user = await newUser.save();
         console.log("New user created: ", newUser);
+    } else {
+        user.googleRefreshToken = req.user.refreshToken;
+        await user.save();
     }
 
     const token = jwt.sign(

@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema(
 
         hashedPassword: {
             type: String,
-            select : false,
+            select: false,
         },
 
         firm: {
@@ -30,6 +30,11 @@ const UserSchema = new mongoose.Schema(
             type: String,
             enum: ["lawyer", "client", "admin", "paralegal"],
             default: "client",
+        },
+
+        googleRefreshToken: {
+            type: String,
+            select: false,
         },
 
         contactInfo: {

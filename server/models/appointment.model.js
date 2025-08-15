@@ -14,37 +14,25 @@ const AppointmentSchema = new mongoose.Schema(
             default: "",
         },
 
-        case: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Case",
-        },
-
         participants: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
+                name: String,
+                email: String,
             },
         ],
 
         date: {
             type: Date,
             required: true,
-            empty: true,
         },
 
-        durationMinutes: {
+        duration: {
             type: Number,
             default: 0,
         },
 
-        location: {
-            type: String, // e.g., physical address or court room
-            empty: true,
-        },
-
-        meetingLink: {
-            type: String, // For virtual appointments (Zoom/Google Meet/etc.)
-            empty: true,
+        meetingUrl: {
+            type: String,
         },
 
         status: {
@@ -56,11 +44,6 @@ const AppointmentSchema = new mongoose.Schema(
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-        },
-
-        isDeleted: {
-            type: Boolean,
-            default: false,
         },
     },
     {

@@ -1,6 +1,8 @@
 const Appointment = require("@models/appointment.model.js");
 const logAudit = require("@middleware/auditLog.middleware.js");
 const User = require("@models/user.model.js");
+const { google } = require("googleapis");
+const { meet } = require("googleapis/build/src/apis/meet");
 
 console.log(logAudit);
 
@@ -9,24 +11,36 @@ exports.createAppointment = async (req, res) => {
 
     console.log("User ID from request:", req.userId);
 
+    const user = await User.findById(req.userId).select("+googleRefreshToken");
+    const appointment = new Appointment({
+        ...req.body,
+        createdBy: req.userId,
+    });
+
+    const meetingBegin = new Date(req.body.date);
+    const meetingEnd = new Date(req.body.date);
+    meetingEnd.setMinutes(meetingBegin.getMinutes() + req.body.duration);
+
+    const event = {
+        summary: req.body.title,
+        description: req.body.description,
+        startDateTime: meetingBegin,
+        endDateTime: meetingEnd,
+        attendees: req.body.participants.map((participant) => ({
+            email: participant.email,
+        })),
+    };
+
+    console.log("Event details:", event);
+
     try {
-        const appointment = new Appointment({
-            ...req.body,
-            createdBy: req.userId,
-        });
+        const { eventLink, meetLink } = await createGoogleMeetEvent(
+            user,
+            event,
+        );
+        appointment.meetingUrl = eventLink;
+
         const saved = await appointment.save();
-        const appointmentId = saved._id;
-
-        const user = await User.findById(req.userId);
-
-        await logAudit({
-            user: user,
-            action: "CREATE_APPOINTMENT",
-            target: "Appointment",
-            description: `Case ${appointmentId} was created`,
-            metadata: { updatedFields: req.body },
-        });
-
         res.status(201).json(saved);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -114,3 +128,72 @@ exports.deleteAppointment = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+async function createGoogleMeetEvent(user, eventDetails) {
+    try {
+        const oAuth2Client = new google.auth.OAuth2(
+            process.env.OAuth_Google_Client_ID,
+            process.env.OAuth_Google_Client_Secret,
+            process.env.GOOGLE_REDIRECT_URI, // can be anything valid, not used here
+        );
+
+        console.log("user : ", user);
+
+        console.log("OAuth2 client created");
+        // Set credentials from stored refresh token
+        oAuth2Client.setCredentials({
+            refresh_token: user.googleRefreshToken,
+        });
+
+        console.log("OAuth2 client credentials set");
+
+        const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+
+        console.log("Google Calendar API client created");
+
+        // Event object
+        const event = {
+            summary: eventDetails.summary, // Title of the meeting
+            description: eventDetails.description, // Optional description
+            start: {
+                dateTime: eventDetails.startDateTime, // e.g., "2025-08-16T10:00:00+05:00"
+                timeZone: "Asia/Karachi",
+            },
+            end: {
+                dateTime: eventDetails.endDateTime, // e.g., "2025-08-16T11:00:00+05:00"
+                timeZone: "Asia/Karachi",
+            },
+            attendees: eventDetails.attendees,
+            conferenceData: {
+                createRequest: {
+                    requestId: `meet-${Date.now()}`,
+                    conferenceSolutionKey: { type: "hangoutsMeet" },
+                },
+            },
+        };
+
+        console.log("Event object created:", event);
+
+        // Insert event with Google Meet link
+        const response = await calendar.events.insert({
+            calendarId: "primary",
+            resource: event,
+            conferenceDataVersion: 1,
+            sendUpdates: "all",
+        });
+
+        console.log("Meeting created:", response.data.htmlLink);
+        console.log(
+            "Google Meet link:",
+            response.data.conferenceData.entryPoints[0].uri,
+        );
+
+        return {
+            eventLink: response.data.htmlLink,
+            meetLink: response.data.conferenceData.entryPoints[0].uri,
+        };
+    } catch (error) {
+        console.error("Error creating Google Meet event:", error);
+        throw error;
+    }
+}

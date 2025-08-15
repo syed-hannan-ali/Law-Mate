@@ -14,7 +14,16 @@ router.post("/refresh-token", updateToken);
 
 router.get(
     "/google",
-    passport.authenticate("google", { scope: ["profile", "email"] }),
+    passport.authenticate("google", {
+        scope: [
+            "profile",
+            "email",
+            "https://www.googleapis.com/auth/calendar.events",
+            "https://www.googleapis.com/auth/calendar",
+        ],
+        accessType: "offline",
+        prompt: "consent",
+    }),
 );
 
 router.get(
