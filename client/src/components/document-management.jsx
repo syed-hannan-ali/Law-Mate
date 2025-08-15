@@ -6,8 +6,11 @@ import {
     Download,
     Trash2,
     Eye,
+    Signature,
     MoreHorizontal,
     FolderOpen,
+    Plus,
+    X,
 } from "lucide-react";
 import {
     Dialog,
@@ -45,13 +48,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@components/ui/select";
+import { Textarea } from "@components/ui/textarea";
 import axios from "@config/axios";
 import { toast } from "sonner";
 
 const statusColor = {
     pending: "yellow",
     signed: "green",
-    declined: "red",    
+    declined: "red",
     "not required": "gray",
     expired: "orange",
 };
@@ -60,11 +64,20 @@ export function DocumentManagement() {
     // Sample data matching your backend structure
     const [documents, setDocuments] = useState([]);
     const [open, setOpen] = useState(false);
+    const [esignDialogOpen, setEsignDialogOpen] = useState(false);
+    const [selectedDocument, setSelectedDocument] = useState(null);
     const [cases, setCases] = useState([]);
     const [formData, setFormData] = useState({
         title: "",
         file: null,
         caseId: "",
+    });
+
+    // E-signature form data
+    const [esignData, setEsignData] = useState({
+        subject: "",
+        message: "",
+        signers: [{ name: "", email: "" }],
     });
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -200,7 +213,9 @@ export function DocumentManagement() {
     };
 
     const handleViewDocument = (doc) => {
-        window.open(doc.fileUrl, "_blank");
+        const url = doc.signedFileUrl || doc.fileUrl;
+
+        window.open(url, "_blank");
         setDropdownOpen(null);
     };
 
@@ -230,13 +245,112 @@ export function DocumentManagement() {
 
     const handleDownloadDocument = (doc) => {
         const link = document.createElement("a");
-        link.href = doc.fileUrl;
+        link.href = doc.signedFileUrl || doc.fileUrl;
         link.download = doc.originalName;
         link.target = "_blank";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         setDropdownOpen(null);
+    };
+
+    // E-signature related functions
+    const requestingSignature = async (doc) => {
+        setSelectedDocument(doc);
+        setEsignData({
+            subject: `Please sign: ${doc.title}`,
+            message: `Please review and sign the attached document: ${doc.title}`,
+            signers: [{ name: "", email: "" }],
+        });
+        setEsignDialogOpen(true);
+        setDropdownOpen(null);
+    };
+
+    const addSigner = () => {
+        setEsignData({
+            ...esignData,
+            signers: [...esignData.signers, { name: "", email: "" }],
+        });
+    };
+
+    const removeSigner = (index) => {
+        if (esignData.signers.length > 1) {
+            const newSigners = esignData.signers.filter((_, i) => i !== index);
+            setEsignData({ ...esignData, signers: newSigners });
+        }
+    };
+
+    const updateSigner = (index, field, value) => {
+        const newSigners = esignData.signers.map((signer, i) =>
+            i === index ? { ...signer, [field]: value } : signer,
+        );
+        setEsignData({ ...esignData, signers: newSigners });
+    };
+
+    const handleEsignSubmit = async () => {
+        // Validate form
+        if (!esignData.subject.trim()) {
+            toast.error("Subject is required");
+            return;
+        }
+
+        if (!esignData.message.trim()) {
+            toast.error("Message is required");
+            return;
+        }
+
+        // Validate signers
+        const validSigners = esignData.signers.filter(
+            (signer) => signer.name.trim() && signer.email.trim(),
+        );
+
+        if (validSigners.length === 0) {
+            toast.error("At least one signer with name and email is required");
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const invalidEmails = validSigners.filter(
+            (signer) => !emailRegex.test(signer.email),
+        );
+
+        if (invalidEmails.length > 0) {
+            toast.error("Please enter valid email addresses for all signers");
+            return;
+        }
+
+        try {
+            const requestData = {
+                documentId: selectedDocument._id,
+                subject: esignData.subject,
+                message: esignData.message,
+                signers: validSigners,
+            };
+
+            await axios.post("/documents/request-signature", requestData);
+            toast.success("E-signature request sent successfully");
+
+            // Update the document status in the local state
+            setDocuments((prevDocs) =>
+                prevDocs.map((doc) =>
+                    doc._id === selectedDocument._id
+                        ? { ...doc, esignStatus: "pending" }
+                        : doc,
+                ),
+            );
+
+            setEsignDialogOpen(false);
+            setSelectedDocument(null);
+            setEsignData({
+                subject: "",
+                message: "",
+                signers: [{ name: "", email: "" }],
+            });
+        } catch (err) {
+            console.error("E-signature request error:", err);
+            toast.error("Failed to send e-signature request");
+        }
     };
 
     const handleDeleteDocument = async (docId) => {
@@ -347,6 +461,144 @@ export function DocumentManagement() {
                     </DialogContent>
                 </Dialog>
             </div>
+
+            {/* E-Signature Request Dialog */}
+            <Dialog open={esignDialogOpen} onOpenChange={setEsignDialogOpen}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Request E-Signature</DialogTitle>
+                        <p className="text-sm text-muted-foreground">
+                            Document: {selectedDocument?.title}
+                        </p>
+                    </DialogHeader>
+
+                    <div className="space-y-6">
+                        <div>
+                            <Label htmlFor="subject">Subject *</Label>
+                            <Input
+                                id="subject"
+                                value={esignData.subject}
+                                onChange={(e) =>
+                                    setEsignData({
+                                        ...esignData,
+                                        subject: e.target.value,
+                                    })
+                                }
+                                placeholder="Enter email subject"
+                                className="mt-1"
+                            />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="message">Message *</Label>
+                            <Textarea
+                                id="message"
+                                value={esignData.message}
+                                onChange={(e) =>
+                                    setEsignData({
+                                        ...esignData,
+                                        message: e.target.value,
+                                    })
+                                }
+                                placeholder="Enter your message to signers..."
+                                rows={4}
+                                className="mt-1"
+                            />
+                        </div>
+
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <Label>Signers *</Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={addSigner}
+                                >
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Add Signer
+                                </Button>
+                            </div>
+
+                            <div className="space-y-3">
+                                {esignData.signers.map((signer, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-end space-x-2 p-3 border rounded-lg"
+                                    >
+                                        <div className="flex-1">
+                                            <Label
+                                                htmlFor={`signer-name-${index}`}
+                                            >
+                                                Name
+                                            </Label>
+                                            <Input
+                                                id={`signer-name-${index}`}
+                                                value={signer.name}
+                                                onChange={(e) =>
+                                                    updateSigner(
+                                                        index,
+                                                        "name",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Full name"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label
+                                                htmlFor={`signer-email-${index}`}
+                                            >
+                                                Email
+                                            </Label>
+                                            <Input
+                                                id={`signer-email-${index}`}
+                                                type="email"
+                                                value={signer.email}
+                                                onChange={(e) =>
+                                                    updateSigner(
+                                                        index,
+                                                        "email",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="email@example.com"
+                                            />
+                                        </div>
+                                        {esignData.signers.length > 1 && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    removeSigner(index)
+                                                }
+                                                className="text-destructive hover:text-destructive"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setEsignDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleEsignSubmit}>
+                            <Signature className="mr-2 h-4 w-4" />
+                            Send E-Signature Request
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Statistics Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -518,8 +770,11 @@ export function DocumentManagement() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {/* i want to add a badge here for E-sign status */}
-                                            <Badge variant={ statusColor[doc.esignStatus]}>
+                                            <Badge
+                                                variant={
+                                                    statusColor[doc.esignStatus]
+                                                }
+                                            >
                                                 {doc.esignStatus}
                                             </Badge>
                                         </TableCell>
@@ -555,6 +810,16 @@ export function DocumentManagement() {
                                                     >
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            requestingSignature(
+                                                                doc,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Signature className="mr-2 h-4 w-4" />
+                                                        Request E-Signature
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() =>

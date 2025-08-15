@@ -26,7 +26,7 @@ router.post(
     documentController.createDocument,
 );
 router.post(
-    "/request-signature/:documentId",
+    "/request-signature/",
     verifyToken,
     documentController.requestSignature,
 );

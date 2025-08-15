@@ -162,7 +162,7 @@ exports.deleteDocument = async (req, res) => {
 
 exports.requestSignature = async (req, res) => {
     try {
-        const { documentId } = req.params;
+        const { documentId } = req.body;
         const { signers, subject, message } = req.body;
 
         console.log("Requesting signature for document:", documentId);
