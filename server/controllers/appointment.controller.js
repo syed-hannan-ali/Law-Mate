@@ -106,29 +106,77 @@ exports.updateAppointment = async (req, res) => {
 
 exports.deleteAppointment = async (req, res) => {
     try {
-        const deleted = await Appointment.findByIdAndUpdate(
-            req.params.id,
-            { isDeleted: true },
-            { new: true },
-        );
-        if (!deleted) return res.status(404).json({ error: "Not found" });
+        const appointment = await Appointment.findById(req.params.id);
+        if (!appointment) return res.status(404).json({ error: "Not found" });
 
-        const user = await User.findById(req.userId);
+        const user = await User.findById(req.userId).select(
+            "+googleRefreshToken",
+        );
+        const appointmentData = appointment.toObject();
+
+        // Delete from Google Calendar if event ID exists
+        let googleDeletionSuccess = true;
+        if (appointment.googleEventId && user.googleRefreshToken) {
+            googleDeletionSuccess = await deleteGoogleCalendarEvent(
+                user,
+                appointment.googleEventId,
+            );
+        }
+
+        // Delete appointment from database
+        await Appointment.findByIdAndDelete(req.params.id);
 
         // Log audit
         await logAudit({
             user: user,
-            action: "DELETE_APPOINTMENT",
+            action: "PERMANENT_DELETE_APPOINTMENT",
             target: "Appointment",
-            description: `Appointment ${deleted._id} was marked as deleted`,
-            metadata: { appointmentId: deleted._id },
+            description: `Appointment ${appointmentData._id} was permanently deleted`,
+            metadata: {
+                appointmentId: appointmentData._id,
+                deletedData: appointmentData,
+                googleEventDeleted: googleDeletionSuccess,
+            },
         });
 
-        res.json({ message: "Appointment deleted successfully" });
+        const message = googleDeletionSuccess
+            ? "Appointment and Google Calendar event deleted successfully"
+            : "Appointment deleted successfully (Google Calendar event deletion failed)";
+
+        res.json({ message });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
+
+async function deleteGoogleCalendarEvent(user, eventId) {
+    try {
+        const oAuth2Client = new google.auth.OAuth2(
+            process.env.OAuth_Google_Client_ID,
+            process.env.OAuth_Google_Client_Secret,
+            process.env.GOOGLE_REDIRECT_URI,
+        );
+
+        oAuth2Client.setCredentials({
+            refresh_token: user.googleRefreshToken,
+        });
+
+        const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+
+        await calendar.events.delete({
+            calendarId: "primary",
+            eventId: eventId,
+            sendUpdates: "all", // Notify attendees about cancellation
+        });
+
+        console.log(`Google Calendar event ${eventId} deleted successfully`);
+        return true;
+    } catch (error) {
+        console.error("Error deleting Google Calendar event:", error);
+        // Don't throw error - we still want to delete the appointment even if Google Calendar deletion fails
+        return false;
+    }
+}
 
 async function createGoogleMeetEvent(user, eventDetails) {
     try {

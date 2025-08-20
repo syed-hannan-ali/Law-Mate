@@ -96,6 +96,19 @@ export function AppointmentManagement() {
         });
     };
 
+    const handleCancelAppointment = async (appointmentId) => {
+        try {
+            await axiosInstance.delete(`/appointments/${appointmentId}`);
+            toast.success('Appointment cancelled successfully');
+            setAppointments((prev) =>
+                prev.filter((appt) => appt._id !== appointmentId)
+            );
+        } catch (err) {
+            console.error('Error cancelling appointment:', err);
+            toast.error('Failed to cancel appointment');
+        }
+    };
+
     const filteredAppointments = appointments.filter(
         (appointment) =>
             appointment.title
@@ -348,7 +361,8 @@ export function AppointmentManagement() {
                                                                 View Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
-                                                            <DropdownMenuItem className="text-red-600">
+                                                            <DropdownMenuItem className="text-red-600"
+                                                            onClick = { () => handleCancelAppointment(appointment._id)}>
                                                                 <X className="mr-2 h-4 w-4" />
                                                                 Cancel
                                                             </DropdownMenuItem>
