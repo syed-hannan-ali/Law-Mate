@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@components/ui/button";
 import { Textarea } from "@components/ui/textarea";
 import { ScrollArea } from "@components/ui/scroll-area";
-import { Bot, User, Send, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { Bot, User, Send, ShieldCheck, Sparkles, Loader2, Upload, FileText, MessageSquare } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "@config/axios";
@@ -12,19 +12,23 @@ import axios from "@config/axios";
 // Merged: ChatInterface is now in the same file
 function ChatInterface() {
     // --------------------
-    // DO NOT CHANGE LOGIC
+    // DO NOT CHANGE LOGIC (Extended with file handling)
     // --------------------
+    const [mode, setMode] = useState("qa"); // "qa" or "summarize"
+
     const [messages, setMessages] = useState([
         {
             id: 1,
             text: "Hello! I'm your legal assistant. How can I help you today?",
             sender: "bot",
-            timestamp: new Date(),
+            timestamp: new Date(),  
         },
     ]);
     const [inputMessage, setInputMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,35 +38,116 @@ function ChatInterface() {
         scrollToBottom();
     }, [messages]);
 
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.type !== "application/pdf") {
+                toast.error("Please select a PDF file");
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                toast.error("File size must be less than 10MB");
+                return;
+            }
+            setSelectedFile(file);
+            toast.success(`Selected: ${file.name}`);
+        }
+    };
+
+    const removeFile = () => {
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const sendMessage = async () => {
-        if (!inputMessage.trim()) return;
+        // Validation based on mode
+        if (mode === "qa" && !inputMessage.trim()) {
+            toast.error("Please enter a question");
+            return;
+        }
+        if (mode === "summarize" && !selectedFile) {
+            toast.error("Please select a PDF file to summarize");
+            return;
+        }
 
         const messageToSend = inputMessage;
+        const fileToSend = selectedFile;
+
+        let userMessageText;
+        if (mode === "qa") {
+            userMessageText = inputMessage;
+        } else {
+            userMessageText = `Summarize: ${fileToSend.name}`;
+        }
 
         const userMessage = {
             id: `${Date.now()}-${Math.random()}`,
-            text: inputMessage,
+            text: userMessageText,
             sender: "user",
             timestamp: new Date(),
         };
 
         setMessages((prev) => [...prev, userMessage]);
         setInputMessage("");
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
         setIsLoading(true);
 
         try {
-            const { data } = await axios.post("/chat", {
-                query: messageToSend,
-            });
+            let response;
+            
+            if (mode === "qa") {
+                // Send as JSON for Q&A
+                response = await axios.post("/chat", {
+                    query: messageToSend,
+                    mode: "qa",
+                    history: messages
+                });
+            } else if (mode === "summarize") {
+                // Send as FormData for file upload
+                const formData = new FormData();
+                formData.append("file", fileToSend);
+                formData.append("mode", "summarize");
+                
+                response = await axios.post("/chat", formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            }
 
-            const botMessage = {
-                id: `${Date.now()}-${Math.random()}`,
-                text: data.response || "No response",
-                sender: "bot",
-                timestamp: new Date(),
-            };
+            const fullText = response.data.response || "No response received";
 
-            setMessages((prev) => [...prev, botMessage]);
+            let i = 0;
+            const botMessageId = `${Date.now()}-bot`;
+
+            // push empty bot message first
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: botMessageId,
+                    text: "",
+                    sender: "bot",
+                    timestamp: new Date(),
+                },
+            ]);
+
+            // typing effect
+            const interval = setInterval(() => {
+                i++;
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.id === botMessageId
+                            ? { ...msg, text: fullText.slice(0, i) }
+                            : msg,
+                    ),
+                );
+                if (i >= fullText.length) clearInterval(interval);
+            }, 20);
         } catch (error) {
             toast.error(
                 error.response?.data?.error ||
@@ -74,7 +159,6 @@ function ChatInterface() {
                 sender: "bot",
                 timestamp: new Date(),
             };
-
             setMessages((prev) => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
@@ -94,6 +178,16 @@ function ChatInterface() {
             minute: "2-digit",
         });
     };
+
+    // Reset states when mode changes
+    useEffect(() => {
+        setInputMessage("");
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }, [mode]);
+
     // --------------------
     // END: DO NOT CHANGE LOGIC
     // --------------------
@@ -135,7 +229,35 @@ function ChatInterface() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
+                        {/* Mode Toggle */}
+                        <div className="flex items-center gap-2 rounded-full border border-slate-600/50 bg-gradient-to-r from-slate-700/80 to-slate-600/80 p-1">
+                            <Button
+                                onClick={() => setMode("qa")}
+                                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                                    mode === "qa"
+                                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                                        : "text-slate-300 hover:bg-slate-600/50"
+                                }`}
+                                size="sm"
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                Q&A
+                            </Button>
+                            <Button
+                                onClick={() => setMode("summarize")}
+                                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                                    mode === "summarize"
+                                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                                        : "text-slate-300 hover:bg-slate-600/50"
+                                }`}
+                                size="sm"
+                            >
+                                <FileText className="h-4 w-4" />
+                                Summarize
+                            </Button>
+                        </div>
+
                         <span className="inline-flex items-center gap-2 rounded-full border border-slate-600/50 bg-gradient-to-r from-slate-700/80 to-slate-600/80 px-4 py-2 text-sm font-medium text-slate-200 shadow-lg">
                             <Sparkles className="h-4 w-4 text-yellow-400" />
                             Beta
@@ -266,45 +388,121 @@ function ChatInterface() {
                 </ScrollArea>
             </div>
 
+            {/* INPUT AREA */}
             <div className="relative z-10 border-t border-slate-700/50 bg-gradient-to-r from-slate-800/90 via-slate-700/90 to-slate-800/90 px-8 py-6 backdrop-blur-md">
-                <div className="mx-auto flex max-w-4xl items-end gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                          
-                            <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-emerald-500/20 opacity-0 transition-opacity duration-300 focus-within:opacity-100" />
-                            
-                            <Textarea
-                                value={inputMessage}
-                                onChange={(e) =>
-                                    setInputMessage(e.target.value)
-                                }
-                                onKeyPress={handleKeyPress}
-                                placeholder="Type your legal question here..."
-                                disabled={isLoading}
-                                className="relative min-h-[64px] max-h-48 w-full resize-y rounded-2xl border-slate-600/50 bg-gradient-to-br from-slate-700/80 to-slate-800/80 px-5 py-4 text-base font-medium text-slate-100 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-all duration-300"
-                            />
-                            
-                        </div>
-                        <p className="mt-3 text-center text-xs font-medium text-slate-400">
-                            Press Enter to send, Shift+Enter for new line
-                        </p>
-                    </div>
-                    <Button
-                        onClick={sendMessage}
-                        disabled={!inputMessage.trim() || isLoading}
-                        className="group relative h-[64px] w-[64px] overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                        <div className="relative z-10">
-                            {isLoading ? (
-                                <Loader2 className="h-6 w-6 animate-spin" />
+                <div className="mx-auto flex max-w-4xl flex-col gap-4">
+                    {/* File Upload Area (only show in summarize mode) */}
+                    {mode === "summarize" && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                        >
+                            {!selectedFile ? (
+                                <div className="rounded-2xl border-2 border-dashed border-slate-600/50 bg-gradient-to-br from-slate-700/50 to-slate-800/50 p-6">
+                                    <div className="flex flex-col items-center gap-3 text-center">
+                                        <div className="rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-3">
+                                            <Upload className="h-8 w-8 text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-lg font-semibold text-slate-200">Upload PDF Document</p>
+                                            <p className="text-sm text-slate-400">Select a PDF file to summarize (max 10MB)</p>
+                                        </div>
+                                        <Button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                                        >
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            Select PDF File
+                                        </Button>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept=".pdf"
+                                            onChange={handleFileSelect}
+                                            className="hidden"
+                                        />
+                                    </div>
+                                </div>
                             ) : (
-                                <Send className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                                <div className="rounded-2xl border border-slate-600/50 bg-gradient-to-br from-slate-700/80 to-slate-800/80 p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-2">
+                                                <FileText className="h-5 w-5 text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-slate-200">{selectedFile.name}</p>
+                                                <p className="text-xs text-slate-400">
+                                                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            onClick={removeFile}
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-slate-400 hover:text-slate-200"
+                                        >
+                                            ✕
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
-                        </div>
-                    </Button>
+                        </motion.div>
+                    )}
 
-                    
+                    {/* Message Input Area */}
+                    <div className="flex items-end gap-4">
+                        <div className="flex-1">
+                            <div className="relative">
+                                <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-emerald-500/20 opacity-0 transition-opacity duration-300 focus-within:opacity-100" />
+
+                                <Textarea
+                                    value={inputMessage}
+                                    onChange={(e) =>
+                                        setInputMessage(e.target.value)
+                                    }
+                                    onKeyPress={handleKeyPress}
+                                    placeholder={
+                                        mode === "qa" 
+                                            ? "Type your legal question here..." 
+                                            : "Ask a question about the uploaded document (optional)..."
+                                    }
+                                    disabled={isLoading}
+                                    className="relative min-h-[64px] max-h-48 w-full resize-y rounded-2xl border-slate-600/50 bg-gradient-to-br from-slate-700/80 to-slate-800/80 px-5 py-4 text-base font-medium text-slate-100 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-all duration-300"
+                                />
+                            </div>
+                            <p className="mt-3 text-center text-xs font-medium text-slate-400">
+                                {mode === "qa" 
+                                    ? "Press Enter to send, Shift+Enter for new line"
+                                    : mode === "summarize" && selectedFile
+                                        ? "Press Enter to summarize, Shift+Enter for new line"
+                                        : "Please select a PDF file first"
+                                }
+                            </p>
+                        </div>
+                        <Button
+                            onClick={sendMessage}
+                            disabled={
+                                (mode === "qa" && !inputMessage.trim()) || 
+                                (mode === "summarize" && !selectedFile) || 
+                                isLoading
+                            }
+                            className="group relative h-[64px] w-[64px] overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                            <div className="relative z-10">
+                                {isLoading ? (
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : (
+                                    <Send className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                                )}
+                            </div>
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
