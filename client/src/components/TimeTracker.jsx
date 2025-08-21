@@ -35,13 +35,14 @@ import { Label } from "@components/ui/label";
 
 import { getAllCases } from "@services/case-service";
 import { getAllTasks } from "@services/task-service";
+import axios from "@config/axios";
 
 const activityTypes = [
-    { id: "research", name: "Legal Research", icon: BookOpen },
-    { id: "drafting", name: "Document Drafting", icon: Laptop },
-    { id: "court", name: "Court Appearance", icon: Building },
-    { id: "meeting", name: "Client Meeting", icon: Calendar },
-    { id: "other", name: "Other", icon: Clock },
+    { _id: "research", name: "Legal Research", icon: BookOpen },
+    { _id: "drafting", name: "Document Drafting", icon: Laptop },
+    { _id: "court", name: "Court Appearance", icon: Building },
+    { _id: "meeting", name: "Client Meeting", icon: Calendar },
+    { _id: "other", name: "Other", icon: Clock },
 ];
 
 const TimeTracker = () => {
@@ -76,6 +77,13 @@ const TimeTracker = () => {
                 setTasks(fetchTasks.data);
             } catch (err) {
                 console.error("Error fetching tasks:", err);
+            }
+
+            try {
+                const fetchEntries = await axios.get("/track-time");
+                setTimeEntries(fetchEntries.data);
+            } catch (err) {
+                console.error("Error fetching time entries:", err);
             }
         };
 
@@ -116,7 +124,15 @@ const TimeTracker = () => {
                 date: new Date().toISOString(),
                 type: "automatic",
             };
-            setTimeEntries([newEntry, ...timeEntries]);
+            axios
+                .post("/track-time", newEntry)
+                .then((response) => {
+                    console.log("Time entry added:", response.data);
+                    setTimeEntries([response.data, ...timeEntries]);
+                })
+                .catch((error) => {
+                    console.error("Error adding manual time entry:", error);
+                });
         }
         setElapsedTime(0);
     };
@@ -135,7 +151,17 @@ const TimeTracker = () => {
                 date: new Date().toISOString(),
                 type: "manual",
             };
-            setTimeEntries([newEntry, ...timeEntries]);
+
+            axios
+                .post("/track-time", newEntry)
+                .then((response) => {
+                    console.log("Manual time entry added:", response.data);
+                    setTimeEntries([response.data, ...timeEntries]);
+                })
+                .catch((error) => {
+                    console.error("Error adding manual time entry:", error);
+                });
+
             setShowManualEntry(false);
             setManualHours(0);
             setManualMinutes(0);
@@ -448,10 +474,11 @@ const TimeTracker = () => {
                                         const ActivityIcon =
                                             activityTypes.find(
                                                 (t) =>
-                                                    t.id === entry.activityType,
+                                                    t._id ===
+                                                    entry.activityType,
                                             )?.icon || Clock;
                                         return (
-                                            <Card key={entry.id}>
+                                            <Card key={entry._id}>
                                                 <CardContent className="pt-6">
                                                     <div className="flex justify-between items-start">
                                                         <div className="flex items-start space-x-3">
