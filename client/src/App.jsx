@@ -9,24 +9,28 @@ import useAuthStore from "@stores/authStore";
 import Login from "@components/auth/Login";
 import Signup from "@components/auth/Signup";
 import OAuthSuccess from "@components/auth/OAuthSuccess";
-import ProtectedRoute from "@components/common/ProtectedRoute";
 import LegalLandingPage from "@components/LegalLandingPage";
 import AdminPage from "@pages/AdminPage";
 import Unauthorized from "@components/unauthorized";
 import LawyerParalegalPage from "@pages/LawyerParalegalPage";
 import ClientPage from "@pages/ClientPage";
-import ChatPage from "@components/chat-interface";
 import SubscriptionPage from "@components/SubscriptionPage";
 import { Toaster } from "sonner";
 import PaymentSuccess from "@components/paymentSuccess";
-import { User } from "lucide-react";
+import TimeTracker from "@components/TimeTracker";
 
 export default function App() {
+    const dev = true;
+
     const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
     useEffect(() => {
         initializeAuth();
     }, [initializeAuth]);
+
+    if (!dev) {
+        return <TimeTracker />;
+    }
 
     return (
         <>

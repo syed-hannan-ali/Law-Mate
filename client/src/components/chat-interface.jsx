@@ -4,7 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@components/ui/button";
 import { Textarea } from "@components/ui/textarea";
 import { ScrollArea } from "@components/ui/scroll-area";
-import { Bot, User, Send, ShieldCheck, Sparkles, Loader2, Upload, FileText, MessageSquare } from "lucide-react";
+import {
+    Bot,
+    User,
+    Send,
+    ShieldCheck,
+    Sparkles,
+    Loader2,
+    Upload,
+    FileText,
+    MessageSquare,
+} from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "@config/axios";
@@ -21,7 +31,7 @@ function ChatInterface() {
             id: 1,
             text: "Hello! I'm your legal assistant. How can I help you today?",
             sender: "bot",
-            timestamp: new Date(),  
+            timestamp: new Date(),
         },
     ]);
     const [inputMessage, setInputMessage] = useState("");
@@ -45,7 +55,8 @@ function ChatInterface() {
                 toast.error("Please select a PDF file");
                 return;
             }
-            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            if (file.size > 10 * 1024 * 1024) {
+                // 10MB limit
                 toast.error("File size must be less than 10MB");
                 return;
             }
@@ -57,7 +68,7 @@ function ChatInterface() {
     const removeFile = () => {
         setSelectedFile(null);
         if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            fileInputRef.current.value = "";
         }
     };
 
@@ -93,29 +104,29 @@ function ChatInterface() {
         setInputMessage("");
         setSelectedFile(null);
         if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            fileInputRef.current.value = "";
         }
         setIsLoading(true);
 
         try {
             let response;
-            
+
             if (mode === "qa") {
                 // Send as JSON for Q&A
                 response = await axios.post("/chat", {
                     query: messageToSend,
                     mode: "qa",
-                    history: messages
+                    history: messages,
                 });
             } else if (mode === "summarize") {
                 // Send as FormData for file upload
                 const formData = new FormData();
                 formData.append("file", fileToSend);
                 formData.append("mode", "summarize");
-                
+
                 response = await axios.post("/chat", formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        "Content-Type": "multipart/form-data",
                     },
                 });
             }
@@ -184,7 +195,7 @@ function ChatInterface() {
         setInputMessage("");
         setSelectedFile(null);
         if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            fileInputRef.current.value = "";
         }
     }, [mode]);
 
@@ -407,11 +418,18 @@ function ChatInterface() {
                                             <Upload className="h-8 w-8 text-blue-400" />
                                         </div>
                                         <div>
-                                            <p className="text-lg font-semibold text-slate-200">Upload PDF Document</p>
-                                            <p className="text-sm text-slate-400">Select a PDF file to summarize (max 10MB)</p>
+                                            <p className="text-lg font-semibold text-slate-200">
+                                                Upload PDF Document
+                                            </p>
+                                            <p className="text-sm text-slate-400">
+                                                Select a PDF file to summarize
+                                                (max 10MB)
+                                            </p>
                                         </div>
                                         <Button
-                                            onClick={() => fileInputRef.current?.click()}
+                                            onClick={() =>
+                                                fileInputRef.current?.click()
+                                            }
                                             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                                         >
                                             <Upload className="h-4 w-4 mr-2" />
@@ -434,9 +452,15 @@ function ChatInterface() {
                                                 <FileText className="h-5 w-5 text-blue-400" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-slate-200">{selectedFile.name}</p>
+                                                <p className="font-medium text-slate-200">
+                                                    {selectedFile.name}
+                                                </p>
                                                 <p className="text-xs text-slate-400">
-                                                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                                                    {(
+                                                        selectedFile.size /
+                                                        (1024 * 1024)
+                                                    ).toFixed(2)}{" "}
+                                                    MB
                                                 </p>
                                             </div>
                                         </div>
@@ -467,8 +491,8 @@ function ChatInterface() {
                                     }
                                     onKeyPress={handleKeyPress}
                                     placeholder={
-                                        mode === "qa" 
-                                            ? "Type your legal question here..." 
+                                        mode === "qa"
+                                            ? "Type your legal question here..."
                                             : "Ask a question about the uploaded document (optional)..."
                                     }
                                     disabled={isLoading}
@@ -476,19 +500,18 @@ function ChatInterface() {
                                 />
                             </div>
                             <p className="mt-3 text-center text-xs font-medium text-slate-400">
-                                {mode === "qa" 
+                                {mode === "qa"
                                     ? "Press Enter to send, Shift+Enter for new line"
                                     : mode === "summarize" && selectedFile
-                                        ? "Press Enter to summarize, Shift+Enter for new line"
-                                        : "Please select a PDF file first"
-                                }
+                                      ? "Press Enter to summarize, Shift+Enter for new line"
+                                      : "Please select a PDF file first"}
                             </p>
                         </div>
                         <Button
                             onClick={sendMessage}
                             disabled={
-                                (mode === "qa" && !inputMessage.trim()) || 
-                                (mode === "summarize" && !selectedFile) || 
+                                (mode === "qa" && !inputMessage.trim()) ||
+                                (mode === "summarize" && !selectedFile) ||
                                 isLoading
                             }
                             className="group relative h-[64px] w-[64px] overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"

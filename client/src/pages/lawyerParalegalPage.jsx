@@ -8,6 +8,7 @@ import { StaffLayout } from "@components/staff-layout";
 import { CaseDetails } from "@components/CaseDetail";
 import ChatPage from "@components/chat-interface";
 import UserProfile from "@components/UserProfile";
+import  TimeTracker from "@components/TimeTracker";
 
 export default function lawyerParalegalPage() {
     return (
@@ -25,6 +26,7 @@ export default function lawyerParalegalPage() {
                 />
                 <Route path="documents" element={<DocumentManagement />} />
                 <Route path="tasks" element={<TaskManagement />} />
+                <Route path="time-tracker" element={<TimeTracker />} />
                 {/* Optional fallback */}
                 <Route path="*" element={<DashboardOverview />} />
             </Route>

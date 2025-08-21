@@ -11,6 +11,7 @@ const userRoutes = require("./user.route.js");
 const subscriptionRoutes = require("./subscription.route.js");
 const stripeRoutes = require("./stripe-route.js");
 const chatRoutes = require("./chat.route.js");
+const caseMessages = require("./message.route.js")
 
 const router = express.Router();
 
@@ -26,5 +27,6 @@ router.use("/tasks", taskRoutes);
 router.use("/subscriptions", subscriptionRoutes);
 router.use("/stripe", stripeRoutes);
 router.use("/chat", chatRoutes);
+router.use("/messages", caseMessages);
 
 module.exports = router;

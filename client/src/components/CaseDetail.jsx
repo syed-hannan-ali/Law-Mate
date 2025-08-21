@@ -1,11 +1,14 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getCaseById, getTimelinesByCase } from "@services/case-service";
 import { Badge } from "@components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Clock, AlertCircle, CheckCircle } from "lucide-react";
-import { User, Users, Plus } from "lucide-react";
+import { User, Users, Plus, MessageCircle } from "lucide-react";
 import { Button } from "@components/ui/button";
+import { ChatModal } from "@components/chat-model";
 
 const statusIcons = {
     open: <Clock className="inline mr-1" />,
@@ -36,6 +39,7 @@ export function CaseDetails() {
     const { id } = useParams();
     const [caseData, setCaseData] = useState(null);
     const [timelines, setTimelines] = useState([]);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     useEffect(() => {
         fetchCase();
@@ -60,6 +64,10 @@ export function CaseDetails() {
         }
     };
 
+    const handleOpenChat = () => {
+        setIsChatOpen(true);
+    };
+
     if (!caseData) return <p>Loading case details...</p>;
 
     return (
@@ -67,10 +75,16 @@ export function CaseDetails() {
             <div className="flex items-center justify-between mt-4">
                 <div className="text-3xl font-bold">{caseData.title}</div>
 
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Timeline
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleOpenChat}>
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Chat
+                    </Button>
+                    <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Timeline
+                    </Button>
+                </div>
             </div>
             <p className="text-muted-foreground">{caseData.description}</p>
 
@@ -193,31 +207,12 @@ export function CaseDetails() {
                 )}
             </div>
 
-            {/* <div>
-                <h2 className="text-xl font-semibold mt-6">Case Timeline</h2>
-                {timelines.length === 0 ? (
-                    <p className="text-muted-foreground">
-                        No timeline entries yet.
-                    </p>
-                ) : (
-                    <ul className="space-y-3 mt-3">
-                        {timelines.map((entry) => (
-                            <li key={entry._id} className="border p-3 rounded">
-                                <strong>{entry.type.toUpperCase()}</strong>:{" "}
-                                {entry.description}
-                                {entry.dueDate && (
-                                    <div className="text-xs text-muted-foreground">
-                                        Deadline:{" "}
-                                        {new Date(
-                                            entry.dueDate,
-                                        ).toLocaleDateString()}
-                                    </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div> */}
+            <ChatModal
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                caseId={id}
+                assignedStaff={caseData.assignedStaff || []}
+            />
         </div>
     );
 }

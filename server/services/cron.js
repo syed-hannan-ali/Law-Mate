@@ -27,7 +27,7 @@ async function updateSignedDocumentsStatus() {
                 },
             );
 
-            console.log(res.data);
+            // console.log(res.data);
 
             const signatureRequest = res.data.signature_request;
 
