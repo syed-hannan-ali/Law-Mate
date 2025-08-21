@@ -12,6 +12,7 @@ import {
     Calendar,
     Shield,
     FolderOpen,
+    Hourglass,
     Receipt,
     CreditCard,
     CheckSquare,
@@ -63,6 +64,7 @@ const navigationItems = [
         items: [
             { title: "Documents", icon: FolderOpen, key: "documents" },
             { title: "Tasks", icon: CheckSquare, key: "tasks" },
+            { title: "Time Tracking", icon: Hourglass, key: "time-tracking" }
         ],
     },
     {

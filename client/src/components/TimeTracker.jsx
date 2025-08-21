@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import {
     Play,
@@ -31,27 +33,8 @@ import { Checkbox } from "@components/ui/checkbox";
 import { Badge } from "@components/ui/badge";
 import { Label } from "@components/ui/label";
 
-// Mock data for demonstration
-const mockCases = [
-    {
-        id: 1,
-        title: "Smith vs. Johnson - Contract Dispute",
-        caseNumber: "CV-2023-04567",
-    },
-    { id: 2, title: "Davis Estate Planning", caseNumber: "EP-2023-07892" },
-    {
-        id: 3,
-        title: "Williams Intellectual Property",
-        caseNumber: "IP-2023-03456",
-    },
-];
-
-const mockTasks = [
-    { id: 1, caseId: 1, title: "Review contract documents" },
-    { id: 2, caseId: 1, title: "Draft motion for summary judgment" },
-    { id: 3, caseId: 2, title: "Prepare will and trust documents" },
-    { id: 4, caseId: 3, title: "File trademark application" },
-];
+import { getAllCases } from "@services/case-service";
+import { getAllTasks } from "@services/task-service";
 
 const activityTypes = [
     { id: "research", name: "Legal Research", icon: BookOpen },
@@ -62,6 +45,9 @@ const activityTypes = [
 ];
 
 const TimeTracker = () => {
+    const [cases, setCases] = useState([]);
+    const [tasks, setTasks] = useState([]);
+
     const [isTracking, setIsTracking] = useState(false);
     const [startTime, setStartTime] = useState(null);
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -74,6 +60,27 @@ const TimeTracker = () => {
     const [showManualEntry, setShowManualEntry] = useState(false);
     const [manualHours, setManualHours] = useState(0);
     const [manualMinutes, setManualMinutes] = useState(0);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            console.log("Fetching cases...");
+            try {
+                const fetchCases = await getAllCases();
+                setCases(fetchCases.data);
+            } catch (err) {
+                console.error("Error fetching cases:", err);
+            }
+            console.log("Fetching tasks...");
+            try {
+                const fetchTasks = await getAllTasks();
+                setTasks(fetchTasks.data);
+            } catch (err) {
+                console.error("Error fetching tasks:", err);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     // Timer logic
     useEffect(() => {
@@ -100,8 +107,8 @@ const TimeTracker = () => {
         if (hours > 0) {
             const newEntry = {
                 id: Date.now(),
-                case: mockCases.find((c) => c.id == selectedCase),
-                task: mockTasks.find((t) => t.id == selectedTask),
+                case: cases.find((c) => c._id == selectedCase),
+                task: tasks.find((t) => t._id == selectedTask),
                 activityType,
                 description,
                 hours,
@@ -119,8 +126,8 @@ const TimeTracker = () => {
         if (totalHours > 0) {
             const newEntry = {
                 id: Date.now(),
-                case: mockCases.find((c) => c.id == selectedCase),
-                task: mockTasks.find((t) => t.id == selectedTask),
+                case: cases.find((c) => c._id == selectedCase),
+                task: tasks.find((t) => t._id == selectedTask),
                 activityType,
                 description,
                 hours: totalHours,
@@ -148,6 +155,10 @@ const TimeTracker = () => {
             .reduce((total, entry) => total + entry.hours, 0)
             .toFixed(2);
     };
+
+    if (!cases || !tasks) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-background p-6">
@@ -189,13 +200,12 @@ const TimeTracker = () => {
                                                 <SelectValue placeholder="Select a case" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {mockCases.map((caseItem) => (
+                                                {cases.map((caseItem) => (
                                                     <SelectItem
-                                                        key={caseItem.id}
-                                                        value={caseItem.id.toString()}
+                                                        key={caseItem._id}
+                                                        value={caseItem._id.toString()}
                                                     >
-                                                        {caseItem.title} (
-                                                        {caseItem.caseNumber})
+                                                        {caseItem.title}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -215,16 +225,16 @@ const TimeTracker = () => {
                                                 <SelectValue placeholder="Select a task" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {mockTasks
+                                                {tasks
                                                     .filter(
                                                         (task) =>
-                                                            task.caseId ==
+                                                            task.case?._id ==
                                                             selectedCase,
                                                     )
                                                     .map((task) => (
                                                         <SelectItem
-                                                            key={task.id}
-                                                            value={task.id.toString()}
+                                                            key={task._id}
+                                                            value={task._id.toString()}
                                                         >
                                                             {task.title}
                                                         </SelectItem>
