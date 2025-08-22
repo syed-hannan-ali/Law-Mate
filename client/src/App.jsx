@@ -17,7 +17,7 @@ import ClientPage from "@pages/ClientPage";
 import SubscriptionPage from "@components/SubscriptionPage";
 import { Toaster } from "sonner";
 import PaymentSuccess from "@components/paymentSuccess";
-import BillingDashboard from "@components/staff-billing";
+import BillingHistory from "@components/billing-history";
 export default function App() {
     const dev = true;
 
@@ -28,7 +28,7 @@ export default function App() {
     }, [initializeAuth]);
 
     if (!dev) {
-        return <BillingDashboard />;
+        return <BillingHistory />;
     }
 
     return (

@@ -57,13 +57,14 @@ const navigationItems = [
         items: [
             { title: "Cases", icon: FileText, key: "cases" },
             { title: "Appointments", icon: Calendar, key: "appointments" },
+            { title: "Documents", icon: FolderOpen, key: "documents" },
+            { title: "Tasks", icon: CheckSquare, key: "tasks" },
         ],
     },
     {
         title: "Operations",
         items: [
-            { title: "Documents", icon: FolderOpen, key: "documents" },
-            { title: "Tasks", icon: CheckSquare, key: "tasks" },
+            { title: "Billing", icon: Receipt, key: "billing    " },
             { title: "Time Tracking", icon: Hourglass, key: "time-tracking" }
         ],
     },

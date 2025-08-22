@@ -66,6 +66,12 @@ const navigationItems = [
         ],
     },
     {
+        title: "Billing",
+        items: [
+            { title: "Billing History", icon: Receipt, key: "billing-history" },
+        ],
+    },
+    {
         title: "System",
         items: [{ title: "Audit Logs", icon: Shield, key: "audit" }],
     },
