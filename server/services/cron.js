@@ -2,6 +2,8 @@ const cron = require("node-cron");
 const axios = require("axios");
 const Document = require("@models/document.model");
 const AWS = require("aws-sdk");
+const Bill = require("@models/bill.model");
+const sendEmail = require("@config/mailer"); // helper for nodemailer
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -67,4 +69,42 @@ async function updateSignedDocumentsStatus() {
 cron.schedule(" */5 * * * *", () => {
     console.log("Running document status check:", new Date().toISOString());
     updateSignedDocumentsStatus();
+});
+
+// Runs every day at midnight
+cron.schedule("0 0 * * *", async () => {
+    console.log("Checking pending payments...");
+    const today = new Date();
+
+    const pendingBills = await Bill.find({
+        status: "sent",
+        dueDate: {
+            $gte: today,
+            $lte: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), // within 3 days
+        },
+    }).populate("client", "email username");
+
+    for (const bill of pendingBills) {
+        await sendEmail(
+            bill.client.email,
+            "Pending Invoice Payment Reminder",
+            `
+            Hi ${bill.client.username},
+
+            This is a reminder that your invoice (ID: ${bill._id}) for case "${bill.case}" 
+            was due on ${bill.dueDate.toDateString()}.
+
+            Total Amount Due: $${bill.total}
+
+            Please make the payment at your earliest convenience.
+
+            Thank you,
+            Your LawMate Team
+            `,
+        );
+
+        console.log(
+            `Reminder sent to ${bill.client.email} for Bill ${bill._id}`,
+        );
+    }
 });
