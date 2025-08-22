@@ -17,8 +17,7 @@ import ClientPage from "@pages/ClientPage";
 import SubscriptionPage from "@components/SubscriptionPage";
 import { Toaster } from "sonner";
 import PaymentSuccess from "@components/paymentSuccess";
-import TimeTracker from "@components/TimeTracker";
-
+import BillingDashboard from "@components/staff-billing";
 export default function App() {
     const dev = true;
 
@@ -29,7 +28,7 @@ export default function App() {
     }, [initializeAuth]);
 
     if (!dev) {
-        return <TimeTracker />;
+        return <BillingDashboard />;
     }
 
     return (

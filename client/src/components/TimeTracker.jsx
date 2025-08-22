@@ -110,8 +110,8 @@ const TimeTracker = () => {
 
     const stopTimer = () => {
         setIsTracking(false);
-        // Save the time entry
-        const hours = elapsedTime / 3600;
+        // Save the time entry and convert it to .2 decimal
+        const hours = (elapsedTime / 3600).toFixed(2);
         if (hours > 0) {
             const newEntry = {
                 id: Date.now(),
@@ -138,7 +138,8 @@ const TimeTracker = () => {
     };
 
     const addManualEntry = () => {
-        const totalHours = manualHours + manualMinutes / 60;
+        let totalHours = manualHours + manualMinutes / 60;
+        totalHours = totalHours.toFixed(2);
         if (totalHours > 0) {
             const newEntry = {
                 id: Date.now(),
@@ -285,8 +286,8 @@ const TimeTracker = () => {
                                             <SelectContent>
                                                 {activityTypes.map((type) => (
                                                     <SelectItem
-                                                        key={type.id}
-                                                        value={type.id}
+                                                        key={type._id}
+                                                        value={type._id}
                                                     >
                                                         {type.name}
                                                     </SelectItem>

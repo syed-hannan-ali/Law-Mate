@@ -9,6 +9,7 @@ import { CaseDetails } from "@components/CaseDetail";
 import ChatPage from "@components/chat-interface";
 import UserProfile from "@components/UserProfile";
 import TimeTracker from "@components/TimeTracker";
+import BillingDashboard from "@components/staff-billing";
 
 export default function lawyerParalegalPage() {
     return (
@@ -18,7 +19,7 @@ export default function lawyerParalegalPage() {
                 <Route path="cases" element={<CaseManagement />} />
                 <Route path="/profile" element={<UserProfile />} />
                 <Route path="/chat" element={<ChatPage />} />
-
+                <Route path="/billing" element={<BillingDashboard />} />
                 <Route path="/cases/:id" element={<CaseDetails />} />
                 <Route
                     path="appointments"

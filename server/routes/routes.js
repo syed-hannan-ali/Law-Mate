@@ -13,6 +13,7 @@ const stripeRoutes = require("./stripe-route.js");
 const chatRoutes = require("./chat.route.js");
 const caseMessages = require("./message.route.js")
 const trackTime = require("./trackTime.route.js");
+const billing  = require("./billing.route.js");
 
 const router = express.Router();
 
@@ -30,5 +31,6 @@ router.use("/stripe", stripeRoutes);
 router.use("/chat", chatRoutes);
 router.use("/messages", caseMessages);
 router.use("/track-time", trackTime);
+router.use("/billings", billing);
 
 module.exports = router;
